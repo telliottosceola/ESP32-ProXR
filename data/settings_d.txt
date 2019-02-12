@@ -1,0 +1,1 @@
+{"ssid":"blank","ssid_password":"","apPass":"NCDBeast","apSSID":"WiFi_Micro_Gateway","dhcp_enabled":1,"static_ip":[192,168,1,2],"default_gateway":[192,168,1,1],"subnet_mask":[255,255,255,255],"dns_primary":[8,8,8,8],"dns_secondary":[8,8,4,4],"bluetoothPairing":"1234","bluetoothName":"NCD","baudRate":115200,"tcpListenPort":2101}
