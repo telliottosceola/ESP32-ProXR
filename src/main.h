@@ -7,9 +7,11 @@
 #include <ESPAsyncWebServer.h>
 #include <DNSServer.h>
 #include <ArduinoJson.h>
+#include <Device.h>
 
 Settings settings;
 RGBLED rgbLED;
+Device device;
 
 bool checkWiFi();
 
@@ -25,6 +27,7 @@ DNSServer dnsServer;
 IPAddress apIP(172, 217, 28, 1);
 void onRequest(AsyncWebServerRequest *request);
 void checkButton();
+void deviceDataCallback(uint8_t* data, int dataLen);
 void factoryReset();
 
 //Setup Mode Stuff

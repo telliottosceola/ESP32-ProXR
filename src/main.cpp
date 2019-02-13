@@ -19,6 +19,8 @@ void setup() {
   rgbLED.init(2,15,13,COMMON_ANODE, false);
   rgbLED.setMode(rgbLED.MODE_BOOT);
   rgbLED.loop();
+  device.registerDeviceDataCallback(deviceDataCallback);
+  device.init(settings.baudRate);
 
   if(digitalRead(button) == 0 || strcmp("blank",settings.wlanSSID) == 0 || strcmp("",settings.wlanSSID) == 0){
     #ifdef DEBUG
@@ -39,6 +41,7 @@ void setup() {
     setupMode = true;
 
   }else{
+    device.loop();
     if(checkWiFi()){
     }
   }
@@ -65,6 +68,16 @@ void loop() {
       rgbLED.setMode(rgbLED.MODE_ALL_CLEAR);
     }
   }
+}
+
+void deviceDataCallback(uint8_t* data, int dataLen){
+  #ifdef DEBUG
+  Serial.print("Received from Device: ");
+  for(int i = 0; i < dataLen; i++){
+    Serial.printf("%i ", data[i]);
+  }
+  Serial.println();
+  #endif
 }
 
 void onRequest(AsyncWebServerRequest *request){
