@@ -24,6 +24,7 @@ const byte DNS_PORT = 53;
 DNSServer dnsServer;
 IPAddress apIP(172, 217, 28, 1);
 void onRequest(AsyncWebServerRequest *request);
+void checkButton();
 void factoryReset();
 
 //Setup Mode Stuff

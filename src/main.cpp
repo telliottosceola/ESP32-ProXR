@@ -45,40 +45,7 @@ void setup() {
 }
 
 void loop() {
-
-  if(digitalRead(button) == 0){
-    if(!setupMode){
-      if(!buttonPressed){
-        buttonPressed = true;
-        buttonPressTime = millis();
-      }else{
-        if(millis() > buttonPressTime + setupButtonTimeout){
-          rgbLED.setMode(rgbLED.MODE_SETUP);
-          rgbLED.loop();
-          ESP.restart();
-        }
-      }
-    }else{
-      //In setup mode so holding the button here means they want a factory reset
-      if(!buttonPressed){
-        buttonPressed = true;
-        buttonPressTime = millis();
-      }else{
-        if((millis() > buttonPressTime + factoryResetTimeout) && factoryResetEnable){
-          while(digitalRead(button) == 0){
-            rgbLED.writeRandom();
-            delay(100);
-          }
-          factoryReset();
-        }
-      }
-    }
-
-  }else{
-    buttonPressed = false;
-    factoryResetEnable = true;
-  }
-
+  checkButton();
   rgbLED.loop();
 
   if(setupMode){
@@ -161,38 +128,7 @@ bool checkWiFi(){
     unsigned long startConnectTime = millis();
     WiFi.begin(settings.wlanSSID, settings.wlanPASS);
     while(WiFi.status() != WL_CONNECTED && millis() < startConnectTime+wifiConnectTimeout){
-      if(digitalRead(button) == 0){
-        if(!setupMode){
-          if(!buttonPressed){
-            buttonPressed = true;
-            buttonPressTime = millis();
-          }else{
-            if(millis() > buttonPressTime + setupButtonTimeout){
-              rgbLED.setMode(rgbLED.MODE_SETUP);
-              rgbLED.loop();
-              ESP.restart();
-            }
-          }
-        }else{
-          //In setup mode so holding the button here means they want a factory reset
-          if(!buttonPressed){
-            buttonPressed = true;
-            buttonPressTime = millis();
-          }else{
-            if((millis() > buttonPressTime + factoryResetTimeout) && factoryResetEnable){
-              while(digitalRead(button) == 0){
-                rgbLED.writeRandom();
-                delay(100);
-              }
-              factoryReset();
-            }
-          }
-        }
-
-      }else{
-        buttonPressed = false;
-        factoryResetEnable = true;
-      }
+      checkButton();
       rgbLED.loop();
     }
     if(WiFi.status() != WL_CONNECTED){
@@ -224,5 +160,40 @@ bool checkWiFi(){
 void factoryReset(){
   if(settings.factoryReset()){
     ESP.restart();
+  }
+}
+
+void checkButton(){
+  if(digitalRead(button) == 0){
+    if(!setupMode){
+      if(!buttonPressed){
+        buttonPressed = true;
+        buttonPressTime = millis();
+      }else{
+        if(millis() > buttonPressTime + setupButtonTimeout){
+          rgbLED.setMode(rgbLED.MODE_SETUP);
+          rgbLED.loop();
+          ESP.restart();
+        }
+      }
+    }else{
+      //In setup mode so holding the button here means they want a factory reset
+      if(!buttonPressed){
+        buttonPressed = true;
+        buttonPressTime = millis();
+      }else{
+        if((millis() > buttonPressTime + factoryResetTimeout) && factoryResetEnable){
+          while(digitalRead(button) == 0){
+            rgbLED.writeRandom();
+            delay(100);
+          }
+          factoryReset();
+        }
+      }
+    }
+
+  }else{
+    buttonPressed = false;
+    factoryResetEnable = true;
   }
 }
