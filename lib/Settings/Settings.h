@@ -3,7 +3,7 @@
 #include <FileSystem.h>
 #include <ArduinoJson.h>
 #include <SPIFFS.h>
-#include <WiFiHandler.h>
+#include <WiFi.h>
 class Settings{
 public:
   bool init();
@@ -34,7 +34,6 @@ public:
 
 private:
   FileSystem fileSystem;
-  WifiHandler wifiHandler;
   String discoveredNetworks;
   void setPublicVariables(JsonObject& settingsJSON);
   String loadedSettings;

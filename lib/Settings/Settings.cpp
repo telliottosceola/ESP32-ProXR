@@ -86,10 +86,34 @@ bool Settings::loadSettings(){
       JsonObject& storedSettingsJSON = jsonBuffer.parseObject(String(storedSettingsFileBuffer));
       if(storedSettingsJSON.success()){
         setPublicVariables(storedSettingsJSON);
-        discoveredNetworks = wifiHandler.scanNetworks(wlanSSID);
         char mac[4] = "...";
         char ip[4] = "...";
         returnSettings(mac,ip,true);
+        //scan networks
+        WiFi.mode(WIFI_STA);
+        delay(100);
+        DynamicJsonBuffer jsonBuffer;
+        JsonArray& foundNetworks = jsonBuffer.createArray();
+        int n = WiFi.scanNetworks();
+        if(n == 0){
+          Serial.println("No Networks Found");
+          delay(500);
+        }else{
+          for(int i = 0; i < n; i++){
+            JsonObject& network = foundNetworks.createNestedObject();
+            network["ssid"] = WiFi.SSID(i);
+            network["rssi"] = WiFi.RSSI(i);
+            if(wlanSSID == network["ssid"]){
+              network["selected"] = true;
+            }
+          }
+          WiFi.mode(WIFI_AP);
+        }
+        foundNetworks.printTo(discoveredNetworks);
+        #ifdef DEBUG
+        Serial.println("Returing true from load settings");
+        delay(50);
+        #endif
         return true;
       }else{
         #ifdef DEBUG
