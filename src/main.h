@@ -8,10 +8,12 @@
 #include <DNSServer.h>
 #include <ArduinoJson.h>
 #include <Device.h>
+#include <Broadcast.h>
 
 Settings settings;
 RGBLED rgbLED;
 Device device;
+Broadcast broadcast;
 
 bool checkWiFi();
 

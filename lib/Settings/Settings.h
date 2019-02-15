@@ -18,7 +18,7 @@ public:
   //Soft AP settings
   char apSSID[50];
   char apPass[50];
-  int tcpListenPort;
+  uint16_t tcpListenPort;
   //Static IP Settings
   bool dhcpEnabled = true;
   IPAddress staticIP;

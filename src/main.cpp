@@ -41,8 +41,9 @@ void setup() {
     setupMode = true;
 
   }else{
-    device.loop();
+    // device.loop();
     if(checkWiFi()){
+      broadcast.init(settings);
     }
   }
 }
@@ -63,7 +64,10 @@ void loop() {
   }else{
     //Run MODE
     if(checkWiFi()){
-
+      if(!broadcast.ready){
+        broadcast.init(settings);
+      }
+      broadcast.loop();
     }else{
       rgbLED.setMode(rgbLED.MODE_ALL_CLEAR);
     }
