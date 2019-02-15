@@ -218,6 +218,8 @@ void Settings::setPublicVariables(JsonObject& settingsJSON){
   strcpy(bluetoothPairing, settingsJSON["bluetoothPairing"]);
   memset(bluetoothName, 0, 50);
   strcpy(bluetoothName, settingsJSON["bluetoothName"]);
+  memset(deviceID, 0, 50);
+  strcpy(deviceID, settingsJSON["wifi_device_id"]);
   baudRate = settingsJSON["baudRate"].as<int>();
   tcpListenPort = settingsJSON["tcpListenPort"].as<int>();
   dhcpEnabled = settingsJSON["dhcp_enabled"].as<bool>();

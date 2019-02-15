@@ -19,6 +19,7 @@ public:
   char apSSID[50];
   char apPass[50];
   uint16_t tcpListenPort;
+  char deviceID[33] = "Travis ESP32 WiFi Module";
   //Static IP Settings
   bool dhcpEnabled = true;
   IPAddress staticIP;
