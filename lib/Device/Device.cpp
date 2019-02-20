@@ -1,24 +1,30 @@
 #include <Device.h>
-HardwareSerial serial1(2);
+HardwareSerial deviceSerial(2);
 
 void Device::init(int baudRate){
-  serial1.begin(baudRate);
+  deviceSerial.begin(baudRate);
 }
 void Device::loop(){
-  if(serial1.available()){
+  if(deviceSerial.available()){
     uint8_t buffer[256];
     int index = 0;
-    while(serial1.available() && index < 255){
-      buffer[index] = serial1.read();
+    while(deviceSerial.available() && index < 255){
+      buffer[index] = deviceSerial.read();
       index++;
     }
-    uint8_t returnData[index+1];
+    uint8_t returnData[index];
     memcpy(returnData, buffer, sizeof(returnData));
     _deviceDataCallback(returnData, sizeof(returnData));
   }
+  //tunnel incomming data on USB serial to Device Serial
+  if(Serial.available()){
+    while(Serial.available()){
+      deviceSerial.write(Serial.read());
+    }
+  }
 }
 void Device::write(uint8_t* data, int dataLen){
-
+  deviceSerial.write(data, dataLen);
 }
 void Device::registerDeviceDataCallback(void(*deviceDataCallback)(uint8_t*data, int dataLen)){
   _deviceDataCallback = deviceDataCallback;
