@@ -9,11 +9,15 @@
 #include <ArduinoJson.h>
 #include <Device.h>
 #include <Broadcast.h>
+#include <WiFiHandler.h>
+#include <TCPServer.h>
 
 Settings settings;
 RGBLED rgbLED;
 Device device;
 Broadcast broadcast;
+WiFiHandler wifiHandler;
+TCPServer tcpServer;
 
 bool checkWiFi();
 
@@ -30,6 +34,7 @@ IPAddress apIP(172, 217, 28, 1);
 void onRequest(AsyncWebServerRequest *request);
 void checkButton();
 void deviceDataCallback(uint8_t* data, int dataLen);
+void tcpDataCallback(uint8_t* data, int dataLen);
 void factoryReset();
 
 //Setup Mode Stuff

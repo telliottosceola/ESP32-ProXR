@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <main.h>
 
-#define DEBUG
+// #define DEBUG
 #define WALLED_GARDEN
 #define TEST
 int transmissionCount = 0;
@@ -16,9 +16,11 @@ void setup() {
     #endif
   }
   settings.loadSettings();
+
   rgbLED.init(2,15,13,COMMON_ANODE, false);
   rgbLED.setMode(rgbLED.MODE_BOOT);
   rgbLED.loop();
+  wifiHandler.init(settings, rgbLED);
   device.registerDeviceDataCallback(deviceDataCallback);
   device.init(settings.baudRate);
 
@@ -42,8 +44,12 @@ void setup() {
 
   }else{
     // device.loop();
-    if(checkWiFi()){
-      broadcast.init(settings);
+    if(settings.wifiEnabled){
+      if(wifiHandler.checkWiFi(setupMode)){
+        broadcast.init(settings);
+        tcpServer.registerTCPDataCallback(tcpDataCallback);
+        tcpServer.init(settings);
+      }
     }
   }
 }
@@ -62,14 +68,22 @@ void loop() {
     dnsServer.processNextRequest();
     #endif
   }else{
+    device.loop();
     //Run MODE
-    if(checkWiFi()){
-      if(!broadcast.ready){
-        broadcast.init(settings);
+    if(settings.wifiEnabled){
+      if(wifiHandler.checkWiFi(setupMode)){
+        if(!broadcast.ready){
+          broadcast.init(settings);
+        }
+        broadcast.loop();
+        if(!tcpServer.ready){
+          tcpServer.init(settings);
+        }
+        tcpServer.loop();
+        rgbLED.setMode(rgbLED.MODE_ALL_CLEAR);
+      }else{
+        rgbLED.setMode(rgbLED.MODE_WIFI_DISCONNECTED);
       }
-      broadcast.loop();
-    }else{
-      rgbLED.setMode(rgbLED.MODE_ALL_CLEAR);
     }
   }
 }
@@ -82,6 +96,16 @@ void deviceDataCallback(uint8_t* data, int dataLen){
   }
   Serial.println();
   #endif
+  if(Serial.availableForWrite()){
+    Serial.write(data, dataLen);
+  }
+  if(tcpServer.ready && tcpServer.clientConnected){
+    tcpServer.sendData(data, dataLen);
+  }
+}
+
+void tcpDataCallback(uint8_t* data, int dataLen){
+  device.write(data, dataLen);
 }
 
 void onRequest(AsyncWebServerRequest *request){
