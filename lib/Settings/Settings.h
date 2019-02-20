@@ -12,7 +12,11 @@ public:
   String returnSettings(char* macAddress,char* ipAddress, bool load);
   bool factoryReset();
 
+  String WiFiNetworks;
+
   //Network settings
+  bool wifiEnabled;
+  bool bluetoothEnabled;
   char wlanSSID[50];
   char wlanPASS[50];
   //Soft AP settings

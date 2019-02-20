@@ -1,6 +1,6 @@
 #include <Settings.h>
 
-#define DEBUG
+// #define DEBUG
 
 bool Settings::init(){
   if(!SPIFFS.begin(true)){
@@ -96,7 +96,9 @@ bool Settings::loadSettings(){
         JsonArray& foundNetworks = jsonBuffer.createArray();
         int n = WiFi.scanNetworks();
         if(n == 0){
+          #ifdef DEBUG
           Serial.println("No Networks Found");
+          #endif
           delay(500);
         }else{
           for(int i = 0; i < n; i++){
@@ -166,6 +168,7 @@ String Settings::returnSettings(char* macAddress,char* ipAddress, bool load){
     }
     storedSettingsJSON.set("mac",macAddress);
     storedSettingsJSON.set("local_ip",ipAddress);
+    storedSettingsJSON["ssid"] = jsonBuffer.parseArray(WiFiNetworks);
     String Settings;
     storedSettingsJSON.printTo(Settings);
     return Settings;
@@ -223,6 +226,8 @@ void Settings::setPublicVariables(JsonObject& settingsJSON){
   baudRate = settingsJSON["baudRate"].as<int>();
   tcpListenPort = settingsJSON["tcpListenPort"].as<int>();
   dhcpEnabled = settingsJSON["dhcp_enabled"].as<bool>();
+  wifiEnabled = settingsJSON["wifi_enabled"].as<bool>();
+  bluetoothEnabled = settingsJSON["bluetooth_enabled"].as<bool>();
 
   JsonArray& staticIPArray = settingsJSON["static_ip"];
   for(int i = 0; i < 4; i++){
