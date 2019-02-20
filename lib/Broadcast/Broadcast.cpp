@@ -6,8 +6,10 @@ void Broadcast::init(Settings &s){
   Settings *settings = &s;
   IPAddress moduleIP = WiFi.localIP();
   broadcastIP = WiFi.gatewayIP();
+  #ifdef DEBUG
   Serial.print("Gateway IP: ");
   Serial.println(WiFi.gatewayIP());
+  #endif
   broadcastIP[3] = 255;
   uint8_t routerMac[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
   uint8_t macBytes[6];
