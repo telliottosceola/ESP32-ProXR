@@ -11,6 +11,7 @@
 #include <Broadcast.h>
 #include <WiFiHandler.h>
 #include <TCPServer.h>
+#include <Bluetooth.h>
 
 Settings settings;
 RGBLED rgbLED;
@@ -18,6 +19,7 @@ Device device;
 Broadcast broadcast;
 WiFiHandler wifiHandler;
 TCPServer tcpServer;
+Bluetooth bluetooth;
 
 bool checkWiFi();
 
@@ -35,6 +37,7 @@ void onRequest(AsyncWebServerRequest *request);
 void checkButton();
 void deviceDataCallback(uint8_t* data, int dataLen);
 void tcpDataCallback(uint8_t* data, int dataLen);
+void bluetoothDataCallback(uint8_t* data, int dataLen);
 void factoryReset();
 
 //Setup Mode Stuff

@@ -51,6 +51,10 @@ void setup() {
         tcpServer.init(settings);
       }
     }
+    if(settings.bluetoothEnabled){
+      bluetooth.init(settings);
+
+    }
   }
 }
 
@@ -85,6 +89,10 @@ void loop() {
         rgbLED.setMode(rgbLED.MODE_WIFI_DISCONNECTED);
       }
     }
+    if(settings.bluetoothEnabled){
+      bluetooth.loop();
+      bluetooth.registerBluetoothDataCallback(bluetoothDataCallback);
+    }
   }
 }
 
@@ -99,12 +107,20 @@ void deviceDataCallback(uint8_t* data, int dataLen){
   if(Serial.availableForWrite()){
     Serial.write(data, dataLen);
   }
-  if(tcpServer.ready && tcpServer.clientConnected){
+  if(settings.wifiEnabled && tcpServer.ready && tcpServer.clientConnected){
     tcpServer.sendData(data, dataLen);
   }
+  if(settings.bluetoothEnabled && bluetooth.deviceConnected){
+    bluetooth.sendData(data, dataLen);
+  }
+
 }
 
 void tcpDataCallback(uint8_t* data, int dataLen){
+  device.write(data, dataLen);
+}
+
+void bluetoothDataCallback(uint8_t* data, int dataLen){
   device.write(data, dataLen);
 }
 
