@@ -228,6 +228,7 @@ void Settings::setPublicVariables(JsonObject& settingsJSON){
   dhcpEnabled = settingsJSON["dhcp_enabled"].as<bool>();
   wifiEnabled = settingsJSON["wifi_enabled"].as<bool>();
   bluetoothEnabled = settingsJSON["bluetooth_enabled"].as<bool>();
+  httpControlEnabled = settingsJSON["http_control_enabled"].as<bool>();
 
   JsonArray& staticIPArray = settingsJSON["static_ip"];
   for(int i = 0; i < 4; i++){

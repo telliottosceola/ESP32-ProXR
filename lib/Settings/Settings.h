@@ -17,6 +17,7 @@ public:
   //Network settings
   bool wifiEnabled;
   bool bluetoothEnabled;
+  bool httpControlEnabled;
   char wlanSSID[50];
   char wlanPASS[50];
   //Soft AP settings
