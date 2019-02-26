@@ -53,7 +53,10 @@ void setup() {
     }
     if(settings.bluetoothEnabled){
       bluetooth.init(settings);
-
+    }
+    if(settings.httpControlEnabled){
+      httpControl.registerHTTPDataCallback(httpDataCallback);
+      httpControl.init();
     }
   }
 }
@@ -93,6 +96,12 @@ void loop() {
       bluetooth.loop();
       bluetooth.registerBluetoothDataCallback(bluetoothDataCallback);
     }
+    if(settings.httpControlEnabled && requestPending){
+      if(millis() > requestSendTime+requestTiemout){
+        requestPending = false;
+        pendingRequest->send(201, "text/plain", "failed to execute command");
+      }
+    }
   }
 }
 
@@ -113,6 +122,17 @@ void deviceDataCallback(uint8_t* data, int dataLen){
   if(settings.bluetoothEnabled && bluetooth.deviceConnected){
     bluetooth.sendData(data, dataLen);
   }
+  if(settings.httpControlEnabled && requestPending){
+    char responseData[dataLen*4];
+    memset(responseData, 0, sizeof(responseData));
+    sprintf(responseData, "%i ", data[0]);
+    for(int i = 1; i < dataLen; i++){
+      sprintf(responseData, "%s%i ", responseData, data[i]);
+    }
+    requestPending = false;
+    httpControl.requestPending = false;
+    pendingRequest->send(200, "text/plain", responseData);
+  }
 
 }
 
@@ -122,6 +142,14 @@ void tcpDataCallback(uint8_t* data, int dataLen){
 
 void bluetoothDataCallback(uint8_t* data, int dataLen){
   device.write(data, dataLen);
+}
+
+void httpDataCallback(uint8_t* data, int dataLen, AsyncWebServerRequest *request){
+  requestPending = true;
+  httpControl.requestPending = true;
+  pendingRequest = request;
+  device.write(data, dataLen);
+  requestSendTime = millis();
 }
 
 void onRequest(AsyncWebServerRequest *request){

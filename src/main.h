@@ -12,6 +12,7 @@
 #include <WiFiHandler.h>
 #include <TCPServer.h>
 #include <Bluetooth.h>
+#include <HTTPControl.h>
 
 Settings settings;
 RGBLED rgbLED;
@@ -20,6 +21,12 @@ Broadcast broadcast;
 WiFiHandler wifiHandler;
 TCPServer tcpServer;
 Bluetooth bluetooth;
+
+HTTPControl httpControl;
+bool requestPending;
+AsyncWebServerRequest *pendingRequest;
+unsigned long requestSendTime;
+unsigned long requestTiemout = 1000;
 
 bool checkWiFi();
 
@@ -38,6 +45,7 @@ void checkButton();
 void deviceDataCallback(uint8_t* data, int dataLen);
 void tcpDataCallback(uint8_t* data, int dataLen);
 void bluetoothDataCallback(uint8_t* data, int dataLen);
+void httpDataCallback(uint8_t* data, int dataLen, AsyncWebServerRequest *request);
 void factoryReset();
 
 //Setup Mode Stuff
