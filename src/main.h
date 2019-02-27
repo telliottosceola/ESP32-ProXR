@@ -13,6 +13,7 @@
 #include <TCPServer.h>
 #include <Bluetooth.h>
 #include <HTTPControl.h>
+#include <MQTT.h>
 
 Settings settings;
 RGBLED rgbLED;
@@ -21,6 +22,7 @@ Broadcast broadcast;
 WiFiHandler wifiHandler;
 TCPServer tcpServer;
 Bluetooth bluetooth;
+MQTT mqtt;
 
 HTTPControl httpControl;
 bool requestPending;
@@ -46,6 +48,7 @@ void deviceDataCallback(uint8_t* data, int dataLen);
 void tcpDataCallback(uint8_t* data, int dataLen);
 void bluetoothDataCallback(uint8_t* data, int dataLen);
 void httpDataCallback(uint8_t* data, int dataLen, AsyncWebServerRequest *request);
+void mqttDataCallback(uint8_t* data, int dataLen);
 void factoryReset();
 
 //Setup Mode Stuff
