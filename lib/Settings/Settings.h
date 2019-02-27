@@ -18,6 +18,8 @@ public:
   bool wifiEnabled;
   bool bluetoothEnabled;
   bool httpControlEnabled;
+  bool mqttEnabled;
+
   char wlanSSID[50];
   char wlanPASS[50];
   //Soft AP settings
@@ -37,6 +39,14 @@ public:
   //Bluetooth Settings
   char bluetoothPairing[50];
   char bluetoothName[50];
+  //MQTT settings
+  char mqttHost[50];
+  int mqttPort = 8883;
+  char mqttClientID[50];
+  char mqttUserName[50];
+  char mqttPassword[50];
+  char mqttSubscribeTopic[50];
+  char mqttPublishTopic[50];
 
 private:
   FileSystem fileSystem;

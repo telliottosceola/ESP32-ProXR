@@ -229,6 +229,20 @@ void Settings::setPublicVariables(JsonObject& settingsJSON){
   wifiEnabled = settingsJSON["wifi_enabled"].as<bool>();
   bluetoothEnabled = settingsJSON["bluetooth_enabled"].as<bool>();
   httpControlEnabled = settingsJSON["http_control_enabled"].as<bool>();
+  memset(mqttHost, 0, 50);
+  strcpy(mqttHost, settingsJSON["mqtt_host"]);
+  memset(mqttClientID, 0, 50);
+  strcpy(mqttClientID, settingsJSON["mqtt_client_id"]);
+  memset(mqttUserName, 0, 50);
+  strcpy(mqttUserName, settingsJSON["mqtt_username"]);
+  memset(mqttPassword, 0, 50);
+  strcpy(mqttPassword, settingsJSON["mqtt_password"]);
+  memset(mqttSubscribeTopic, 0, 50);
+  strcpy(mqttSubscribeTopic, settingsJSON["mqtt_subscribe_topic"]);
+  memset(mqttPublishTopic, 0, 50);
+  strcpy(mqttPublishTopic, settingsJSON["mqtt_publish_topic"]);
+  mqttPort = settingsJSON["mqtt_port"].as<int>();
+  mqttEnabled = settingsJSON["mqtt_enabled"].as<bool>();
 
   JsonArray& staticIPArray = settingsJSON["static_ip"];
   for(int i = 0; i < 4; i++){
