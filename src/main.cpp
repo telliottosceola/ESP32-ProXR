@@ -27,19 +27,9 @@ void setup() {
   if(digitalRead(button) == 0 || strcmp("blank",settings.wlanSSID) == 0 || strcmp("",settings.wlanSSID) == 0){
     #ifdef DEBUG
     Serial.println("Setup Mode");
-
     #endif
     rgbLED.setMode(rgbLED.MODE_SETUP);
-    WiFi.mode(WIFI_AP);
-    delay(200);
-    WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
-    Serial.printf("AP SSID:%s\n",settings.apSSID);
-    Serial.printf("AP Pass:%s\n",settings.apPass);
-    WiFi.softAP(settings.apSSID, settings.apPass, 1, 0, 1);
-    #ifdef WALLED_GARDEN
-    dnsServer.setTTL(0);
-    dnsServer.start(DNS_PORT, "*", apIP);
-    #endif
+    softAPHandler.init(settings);
     setupMode = true;
 
   }else{
@@ -70,14 +60,7 @@ void loop() {
   rgbLED.loop();
 
   if(setupMode){
-    if(boot){
-      server.onNotFound(onRequest);
-      server.begin();
-      boot = false;
-    }
-    #ifdef WALLED_GARDEN
-    dnsServer.processNextRequest();
-    #endif
+    softAPHandler.loop();
   }else{
     device.loop();
     //Run MODE
@@ -91,7 +74,21 @@ void loop() {
           tcpServer.init(settings);
         }
         tcpServer.loop();
-        rgbLED.setMode(rgbLED.MODE_ALL_CLEAR);
+        if(settings.mqttEnabled && !mqtt.connected){
+
+        }
+        if(dataReceivedLED && millis() < dataReceivedTime+minimumFlashTime){
+          //Hold data receive LED on long enough for user to see it.
+        }else{
+          dataReceivedLED = false;
+          if(tcpServer.clientConnected || bluetooth.deviceConnected){
+            rgbLED.setMode(rgbLED.MODE_CLIENT_CONNECTED);
+          }else{
+            rgbLED.setMode(rgbLED.MODE_ALL_CLEAR);
+          }
+        }
+
+
       }else{
         rgbLED.setMode(rgbLED.MODE_WIFI_DISCONNECTED);
       }
@@ -143,18 +140,26 @@ void deviceDataCallback(uint8_t* data, int dataLen){
   if(settings.mqttEnabled){
     mqtt.mqttPublish(data, dataLen);
   }
-
 }
 
 void tcpDataCallback(uint8_t* data, int dataLen){
+  dataReceivedLED = true;
+  dataReceivedTime = millis();
+  rgbLED.setMode(rgbLED.MODE_DATA_RECEIVED);
   device.write(data, dataLen);
 }
 
 void bluetoothDataCallback(uint8_t* data, int dataLen){
+  dataReceivedLED = true;
+  dataReceivedTime = millis();
+  rgbLED.setMode(rgbLED.MODE_DATA_RECEIVED);
   device.write(data, dataLen);
 }
 
 void httpDataCallback(uint8_t* data, int dataLen, AsyncWebServerRequest *request){
+  dataReceivedLED = true;
+  dataReceivedTime = millis();
+  rgbLED.setMode(rgbLED.MODE_DATA_RECEIVED);
   requestPending = true;
   httpControl.requestPending = true;
   pendingRequest = request;
@@ -163,6 +168,9 @@ void httpDataCallback(uint8_t* data, int dataLen, AsyncWebServerRequest *request
 }
 
 void mqttDataCallback(uint8_t* data, int dataLen){
+  dataReceivedLED = true;
+  dataReceivedTime = millis();
+  rgbLED.setMode(rgbLED.MODE_DATA_RECEIVED);
   device.write(data, dataLen);
 }
 
