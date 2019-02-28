@@ -106,7 +106,7 @@ public:
 
   void loop();
 
-  uint8_t MODE_ERROR_S3B = 0;
+  uint8_t MODE_ERROR_MQTT = 0;
   uint8_t MODE_ERROR_I2C = 1;
   uint8_t MODE_ERROR_COMMS = 2;
   uint8_t MODE_SIGNAL_STRENGTH = 3;
@@ -115,6 +115,8 @@ public:
   uint8_t MODE_SETUP = 6;
   uint8_t MODE_WIFI_DISCONNECTED = 7;
   uint8_t MODE_ALL_CLEAR = 8;
+  uint8_t MODE_CLIENT_CONNECTED = 9;
+  uint8_t MODE_DATA_RECEIVED = 10;
 
 private:
   int buzzer = 33;
@@ -128,10 +130,10 @@ private:
   unsigned long flashIndex;
   uint8_t _signalStrength;
 
-  unsigned long MODE_ERROR_S3B_SEQUENCE[2] = {cycleDelay, pulseDuration}; //One Flash
-  int MODE_ERROR_S3B_COLOR[3] = {255,0,0};
-  int MODE_ERROR_S3B_INDEX_STATE[2] = {0, 1};
-  int MODE_ERROR_S3B_SIZE = 2;
+  unsigned long MODE_ERROR_MQTT_SEQUENCE[2] = {cycleDelay, pulseDuration}; //One Flash
+  int MODE_ERROR_MQTT_COLOR[3] = {255,0,0};
+  int MODE_ERROR_MQTT_INDEX_STATE[2] = {0, 1};
+  int MODE_ERROR_MQTT_SIZE = 2;
 
   unsigned long MODE_ERROR_I2C_SEQUENCE[4] = {cycleDelay, pulseDuration, offDuration, pulseDuration}; //One Flash
   int MODE_ERROR_I2C_COLOR[3] = {255,0,0};
@@ -167,6 +169,11 @@ private:
   int MODE_WIFI_DISCONNECT_COLOR[3] = {255,0,0};
   int MODE_WIFI_DISCONNECT_INDEX_STATE[8] = {0, 1, 0, 1, 0, 1, 0, 1};
   int MODE_WIFI_DISCONNECT_SIZE = 8;
+
+  unsigned long MODE_ALL_CLEAR_SEQUENCE[2] = {cycleDelay, pulseDuration}; //One Flash
+  int MODE_ALL_CLEAR_COLOR[3] = {0,255,0};
+  int MODE_ALL_CLEAR_INDEX_STATE[2] = {0, 1};
+  int MODE_ALL_CLEAR_SIZE = 2;
 };
 
 #endif

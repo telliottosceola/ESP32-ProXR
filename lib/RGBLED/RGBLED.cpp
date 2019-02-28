@@ -160,13 +160,13 @@ void RGBLED::loop(){
 	switch(_MODE){
 		case 0:{
 			if(previousTime == 0){
-				if(MODE_ERROR_S3B_INDEX_STATE[flashIndex] == 0){
+				if(MODE_ERROR_MQTT_INDEX_STATE[flashIndex] == 0){
 					turnOff();
 					if(_buzzerEnabled){
 						digitalWrite(buzzer, HIGH);
 					}
 				}else{
-					writeRGB(MODE_ERROR_S3B_COLOR[0], MODE_ERROR_S3B_COLOR[1], MODE_ERROR_S3B_COLOR[2]);
+					writeRGB(MODE_ERROR_MQTT_COLOR[0], MODE_ERROR_MQTT_COLOR[1], MODE_ERROR_MQTT_COLOR[2]);
 					if(_buzzerEnabled){
 						digitalWrite(buzzer, LOW);
 					}
@@ -174,16 +174,16 @@ void RGBLED::loop(){
 				previousTime = millis();
 
 			}else{
-				if(millis() > previousTime+MODE_ERROR_S3B_SEQUENCE[flashIndex]){
-					(flashIndex >= (MODE_ERROR_S3B_SIZE-1))? flashIndex = 0 : flashIndex++;
+				if(millis() > previousTime+MODE_ERROR_MQTT_SEQUENCE[flashIndex]){
+					(flashIndex >= (MODE_ERROR_MQTT_SIZE-1))? flashIndex = 0 : flashIndex++;
 					previousTime = millis();
-					if(MODE_ERROR_S3B_INDEX_STATE[flashIndex] == 0){
+					if(MODE_ERROR_MQTT_INDEX_STATE[flashIndex] == 0){
 						turnOff();
 						if(_buzzerEnabled){
 							digitalWrite(buzzer, HIGH);
 						}
 					}else{
-						writeRGB(MODE_ERROR_S3B_COLOR[0], MODE_ERROR_S3B_COLOR[1], MODE_ERROR_S3B_COLOR[2]);
+						writeRGB(MODE_ERROR_MQTT_COLOR[0], MODE_ERROR_MQTT_COLOR[1], MODE_ERROR_MQTT_COLOR[2]);
 						if(_buzzerEnabled){
 							digitalWrite(buzzer, LOW);
 						}
@@ -343,7 +343,32 @@ void RGBLED::loop(){
 			break;
 		}
 		case 8:{
-			writeRGB(0, 255, 0);
+			if(previousTime == 0){
+				if(MODE_ALL_CLEAR_INDEX_STATE[flashIndex] == 0){
+					turnOff();
+				}else{
+					writeRGB(MODE_ALL_CLEAR_COLOR[0], MODE_ALL_CLEAR_COLOR[1], MODE_ALL_CLEAR_COLOR[2]);
+				}
+				previousTime = millis();
+			}else{
+				if(millis() > previousTime+MODE_ALL_CLEAR_SEQUENCE[flashIndex]){
+					(flashIndex >= MODE_ALL_CLEAR_SIZE-1)? flashIndex = 0 : flashIndex++;
+					previousTime = millis();
+					if(MODE_ALL_CLEAR_INDEX_STATE[flashIndex] == 0){
+						turnOff();
+					}else{
+						writeRGB(MODE_ALL_CLEAR_COLOR[0], MODE_ALL_CLEAR_COLOR[1], MODE_ALL_CLEAR_COLOR[2]);
+					}
+				}
+			}
+			break;
 		}
+		case 9:{
+			writeRGB(0,255,0);
+			break;
+		}
+		case 10:
+		writeRGB(255,165,0);
+		break;
 	}
 }
