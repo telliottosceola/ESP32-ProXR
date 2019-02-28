@@ -12,6 +12,7 @@ public:
   void loop();
   void registerMQTTDataCallback(void(*MQTTDataCallback)(uint8_t*data, int dataLen));
   void mqttPublish(uint8_t* payload, unsigned int length);
+  bool connected = false;
 
 private:
   Settings *settings;

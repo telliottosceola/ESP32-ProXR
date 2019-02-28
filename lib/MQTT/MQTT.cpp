@@ -1,6 +1,6 @@
 #include <MQTT.h>
 
-#define DEBUG
+// #define DEBUG
 
 WiFiClient mqttWiFiClient;
 PubSubClient mqttClient(mqttWiFiClient);
@@ -72,6 +72,7 @@ void MQTT::mqttCallback(char* topic, byte* payload, unsigned int length) {
 
 bool MQTT::checkMQTT(){
   if(mqttClient.connected()){
+    connected = true;
     return true;
   }
   mqttClient.setServer(settings->mqttHost, settings->mqttPort);
@@ -101,6 +102,7 @@ bool MQTT::checkMQTT(){
     #ifdef DEBUG
     Serial.println("No MQTT Client set");
     #endif
+    connected = false;
     return false;
   }
 
@@ -120,8 +122,13 @@ bool MQTT::checkMQTT(){
       Serial.printf("Subscription to topic %s failed\n", settings->mqttSubscribeTopic);
       #endif
     }
+    connected = true;
+    return true;
+  }else{
+    connected = false;
+    return false;
   }
-  return true;
+
 }
 
 void MQTT::registerMQTTDataCallback(void(*MQTTDataCallback)(uint8_t*data, int dataLen)){
