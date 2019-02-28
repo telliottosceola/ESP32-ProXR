@@ -119,6 +119,11 @@ public:
   uint8_t MODE_DATA_RECEIVED = 10;
 
 private:
+
+  unsigned long minimumFlashTime = 100;
+  unsigned long dataReceivedTime;
+  bool dataReceivedLED = false;
+
   int buzzer = 33;
   bool _buzzerEnabled = false;
   void writeRGB(int red, int green, int blue);

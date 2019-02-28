@@ -140,6 +140,12 @@ void RGBLED::writeColorWheel(int dly) {
 }
 
 void RGBLED::setMode(uint8_t MODE){
+	if(MODE == MODE_DATA_RECEIVED){
+		dataReceivedLED = true;
+		dataReceivedTime = millis();
+		writeRGB(255,165,0);
+	}
+
 	if(_MODE == MODE){
 		return;
 	}
@@ -157,6 +163,13 @@ void RGBLED::setSignalStrength(uint8_t signalStrength){
 }
 
 void RGBLED::loop(){
+
+	if(dataReceivedLED && millis() < dataReceivedTime+minimumFlashTime){
+		return;
+	}else{
+		dataReceivedLED = false;
+	}
+
 	switch(_MODE){
 		case 0:{
 			if(previousTime == 0){
