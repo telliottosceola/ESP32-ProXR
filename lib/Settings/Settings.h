@@ -19,6 +19,8 @@ public:
   bool bluetoothEnabled;
   bool httpControlEnabled;
   bool mqttEnabled;
+  bool udpBroadcastEnabled;
+  bool tcpListenerEnabled;
 
   char wlanSSID[50];
   char wlanPASS[50];

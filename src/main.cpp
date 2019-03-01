@@ -2,9 +2,6 @@
 #include <main.h>
 
 // #define DEBUG
-#define WALLED_GARDEN
-#define TEST
-int transmissionCount = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -42,9 +39,13 @@ void setup() {
     }
     if(settings.wifiEnabled){
       if(wifiHandler.checkWiFi(setupMode)){
-        broadcast.init(settings);
-        tcpServer.registerTCPDataCallback(tcpDataCallback);
-        tcpServer.init(settings);
+        if(settings.udpBroadcastEnabled){
+          broadcast.init(settings);
+        }
+        if(settings.tcpListenerEnabled){
+          tcpServer.registerTCPDataCallback(tcpDataCallback);
+          tcpServer.init(settings);
+        }
       }
       if(settings.httpControlEnabled){
         httpControl.registerHTTPDataCallback(httpDataCallback);
@@ -75,15 +76,16 @@ void loop() {
     if(settings.wifiEnabled){
       if(wifiHandler.checkWiFi(setupMode)){
         //WiFi is connected
-        if(!broadcast.ready){
+        if(settings.udpBroadcastEnabled && !broadcast.ready){
           broadcast.init(settings);
         }
         broadcast.loop();
-        if(!tcpServer.ready){
+        if(settings.tcpListenerEnabled && !tcpServer.ready){
           tcpServer.init(settings);
         }
-        tcpServer.loop();
-
+        if(settings.tcpListenerEnabled){
+          tcpServer.loop();
+        }
         if(settings.mqttEnabled){
           mqtt.loop();
         }
@@ -119,7 +121,7 @@ void deviceDataCallback(uint8_t* data, int dataLen){
   if(Serial.availableForWrite()){
     Serial.write(data, dataLen);
   }
-  if(settings.wifiEnabled && tcpServer.ready && tcpServer.clientConnected){
+  if(settings.wifiEnabled && settings.tcpListenerEnabled && tcpServer.ready && tcpServer.clientConnected){
     tcpServer.sendData(data, dataLen);
   }
   if(settings.bluetoothEnabled && bluetooth.deviceConnected){
