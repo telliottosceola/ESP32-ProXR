@@ -18,5 +18,6 @@ private:
 
   Settings *settings;
   void onRequest(AsyncWebServerRequest *request);
+  void configUpdate(AsyncWebServerRequest *request);
 };
 #endif

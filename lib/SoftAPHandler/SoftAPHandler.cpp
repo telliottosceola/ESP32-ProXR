@@ -2,6 +2,8 @@
 
 #define WALLED_GARDEN
 
+// #define DEBUG
+
 AsyncWebServer softAPServer(80);
 IPAddress apIP(172, 217, 28, 1);
 
@@ -20,6 +22,7 @@ void SoftAPHandler::init(Settings &s){
   #endif
 
   softAPServer.onNotFound(std::bind(&SoftAPHandler::onRequest, this, std::placeholders::_1));
+  softAPServer.on("/update", std::bind(&SoftAPHandler::configUpdate, this, std::placeholders::_1));
   softAPServer.begin();
 }
 
@@ -43,13 +46,8 @@ void SoftAPHandler::onRequest(AsyncWebServerRequest *request){
     return;
   }
   if(request->url() == "/loadSettings"){
+    Serial.println("/loadSettings request");
     request->send(200, "text/plain", settings->returnSettings("...","...",false));
-    return;
-  }
-  if(request->url() == "/update"){
-    #ifdef DEBUG
-    Serial.println("handling /update request");
-    #endif
     return;
   }
   if(request->url() == "/factoryReset"){
@@ -61,6 +59,38 @@ void SoftAPHandler::onRequest(AsyncWebServerRequest *request){
   #ifdef DEBUG
   Serial.println("Sending config");
   #endif
-  request->send(200, "text/plain", "Setup Mode");
+  request->send(SPIFFS, "/Config.html");
   return;
+}
+
+void SoftAPHandler::configUpdate(AsyncWebServerRequest *request){
+  Serial.println("Running configUpdate");
+  Serial.printf("Args: %i\n",request->args());
+  Serial.printf("Params: %i\n",request->params());
+
+  if(request->args() > 0 && request->hasArg("body")){
+    Serial.print("arg(0)");
+    uint8_t zero = 0;
+    String requestString = request->arg(zero);
+    Serial.println(requestString);
+    delay(500);
+    StaticJsonBuffer<1200> requestjsonBuffer;
+    JsonObject& requestRoot = requestjsonBuffer.parseObject(requestString);
+    requestRoot["wifi_enabled"] = requestRoot.containsKey("wifi_enabled");
+    requestRoot["dhcp_enabled"] = requestRoot.containsKey("dhcp_enabled");
+    requestRoot["bluetooth_enabled"] = requestRoot.containsKey("bluetooth_enabled");
+    requestRoot["mqtt_enabled"] = requestRoot.containsKey("mqtt_enabled");
+
+    String finalFinal;
+    requestRoot.printTo(finalFinal);
+
+    request->send(200, "text/plain", "Settings updated");
+    delay(500);
+    if(settings->storeSettings(finalFinal)){
+      ESP.restart();
+    }
+  }
+  else{
+    request->send(200, "text/plain", "Well that's no good.");
+  }
 }
