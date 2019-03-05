@@ -17,9 +17,6 @@ void setup() {
   rgbLED.setMode(rgbLED.MODE_BOOT);
   rgbLED.loop();
   wifiHandler.init(settings, rgbLED);
-  device.registerDeviceDataCallback(deviceDataCallback);
-  device.init(settings.baudRate);
-
   gpioHandler.init(settings, rgbLED);
 
   if(gpioHandler.checkCFGButton() || strcmp("blank",settings.wlanSSID) == 0 || strcmp("",settings.wlanSSID) == 0){
@@ -28,10 +25,15 @@ void setup() {
     Serial.println("Setup Mode");
     #endif
     rgbLED.setMode(rgbLED.MODE_SETUP);
+    wifiHandler.scanNetworks();
+    device.registerDeviceDataCallback(deviceDataCallback);
+    device.init(settings.baudRate);
     softAPHandler.init(settings);
     setupMode = true;
 
   }else{
+    device.registerDeviceDataCallback(deviceDataCallback);
+    device.init(settings.baudRate);
     gpioHandler.setupMode = false;
     if(settings.bluetoothEnabled){
       bluetooth.registerBluetoothDataCallback(bluetoothDataCallback);
