@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 	<style>
 	.accordion {
 		background-color: #eee;
@@ -13,6 +14,8 @@
 		outline: none;
 		font-size: 15px;
 		transition: 0.4s;
+		display: inline-block;
+		margin-bottom: 10;
 	}
 
 	.active, .accordion:hover {
@@ -24,7 +27,24 @@
 		background-color: white;
 		max-height: 0;
 		overflow: hidden;
+		margin-bottom: 10;
 		transition: max-height 0.2s ease-out;
+	}
+
+	.sticky{
+		background-color: #333;
+		color: white;
+		cursor: pointer;
+		padding: 18px;
+		width: 100%;
+		border: none;
+		outline: none;
+		font-size: 15px;
+		text-align: center;
+		position: fixed;
+		bottom: 0;
+		left:0;
+		display: inline-block;
 	}
 </style>
 <title>NCD WiFi Config</title>
@@ -52,23 +72,23 @@
 			</div>
 			<div class="form-item">
 				<label for="default_gateway">Default Gateway:</label>
-				<input type="text" name="default_gateway" id="default_gateway" />
+				<input class="ip" type="text" name="default_gateway" id="default_gateway" />
 			</div>
 			<div class="form-item">
 				<label for="subnet_mask">Subnet Mask:</label>
-				<input type="text" name="subnet_mask" id="subnet_mask" />
+				<input class="ip" type="text" name="subnet_mask" id="subnet_mask" />
 			</div>
 			<div class="form-item">
 				<label for="dns_primary">DNS Primary:</label>
-				<input type="text" name="dns_primary" id="dns_primary" />
+				<input class="ip" type="text" name="dns_primary" id="dns_primary" />
 			</div>
 			<div class="form-item">
 				<label for="dns_secondary">DNS Secondary:</label>
-				<input type="text" name="dns_secondary" id="dns_secondary" />
+				<input class="ip" type="text" name="dns_secondary" id="dns_secondary" />
 			</div>
 			<div class="form-item">
 				<label for="static_ip">Static IP:</label>
-				<input type="text" name="static_ip" id="static_ip" />
+				<input class="ip" type="text" name="static_ip" id="static_ip" />
 			</div>
 		</div>
 	</div>
@@ -190,13 +210,43 @@
 			<input type="text" name="mqtt_subscribe_topic" id="mqtt_subscribe_topic" />
 		</div>
 		<div class="form-item">
-			<label for="mqtt_publish_topic">Publish Topci:</label>
+			<label for="mqtt_publish_topic">Publish Topic:</label>
 			<input type="text" name="mqtt_publish_topic" id="mqtt_publish_topic" />
 		</div>
 	</div>
 </div>
+<button class="sticky">Save Settings</button>
 
 <script>
+class miniQ{
+	constructor(s, c){
+		this._els = [];
+		this.selector = s;
+		this.context = c ? c : document;
+		this._els = this.context.querySelectorAll(s);
+	}
+	each(cb){
+		this._els.forEach((el, i) => {
+			cb.call(el, i);
+		});
+		return this;
+	}
+	get(i){
+		if(!this._els.length || this._els.length <= i) return false;
+		return this._els[i];
+	}
+	on(ev, cb){
+		this._els.forEach((el) => {
+			el.addEventListener(ev, (ev) => {
+				var res = cb.call(el, ev);
+				if(res === false) ev.preventDefault();
+			});
+		});
+	}
+}
+var $ = function(s, c){
+	return new miniQ(s,c);
+};
 document.addEventListener("DOMContentLoaded", function() {
 	document.querySelectorAll('form[data-settings-path]').forEach(function(form){
 		disable(form);
@@ -205,13 +255,24 @@ document.addEventListener("DOMContentLoaded", function() {
 				console.log(err);
 			}else{
 				function setField(i, v){
-					if(typeof form[i] != 'undefined' && v != 'blank'){
+					var field;
+					if(typeof i == "string"){
+						field = $('[name="'+i+'"]').get(0);
+					}else{
+						field = i;
+					}
+					if(typeof form[i] != 'undefined' && v != 'blank' && field){
 						switch(form[i].type){
 							case 'checkbox':
 							form[i].checked = form[i].value == v;
 							break;
 							default:
-							form[i].value = v;
+							if(field.tagName == "SELECT"){
+								$('option[value="'+v+'"]', field).get(0).selected = "selected";
+							}else{
+								if(field.classList.contains('ip')) v = v.join('.');
+								field.value = v;
+							}
 						}
 					}
 				}
@@ -310,7 +371,12 @@ function postForm(form, cb){
 			default:
 			var splitText = el.name.split('.');
 			if(splitText.length == 1){
-				formData[el.name] = el.value;
+				if(el.classList.contains('ip')){
+					formData[el.name] = el.value.split('.').map(v => v*1);
+				}else{
+					formData[el.name] = el.value;
+				}
+
 			}else{
 				if(formData.hasOwnProperty(splitText[0])){
 					formData[splitText[0]][splitText[1]] = el.value;
