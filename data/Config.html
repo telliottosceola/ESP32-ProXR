@@ -15,7 +15,7 @@
 		font-size: 15px;
 		transition: 0.4s;
 		display: inline-block;
-		margin-bottom: 10;
+		z-index: 1;
 	}
 
 	.active, .accordion:hover {
@@ -28,7 +28,8 @@
 		max-height: 0;
 		overflow: hidden;
 		margin-bottom: 10;
-		transition: max-height 0.2s ease-out;
+		z-index: 1;
+		/* transition: max-height 0.2s ease-out; */
 	}
 
 	.sticky{
@@ -45,177 +46,186 @@
 		bottom: 0;
 		left:0;
 		display: inline-block;
+		z-index: 1;
 	}
+	.main{
+		overflow-y: scroll;
+		padding-bottom: 50px;
+	}
+		/* height: 1500px; /* Used in this example to enable scrolling */ */
+}
 </style>
 <title>NCD WiFi Config</title>
 </head>
 <form action="/update" data-settings-path="/loadSettings" method="post" enctype="application/x-www-form-urlencoded">
+	<div class="main">
+		<button class="accordion" type="button">WiFi</button>
+		<div class="panel">
+			<div class="form-group">
+				<div class="form-item">
+					<label for="wifi_enabled">Enabled:</label>
+					<input type="checkbox" name="wifi_enabled" value="1"/><br>
+				</div>
+				<div class="form-item">
+					<label for="ssid">Network:</label>
+					<select name="ssid" id="ssid"></select><br>
+				</div>
+				<div class="form-item">
+					<label for="password">Password:</label>
+					<input type="password" name="ssid_password" id="password" />
+				</div>
+				<div class="form-item">
+					<label for="dhcp_enabled">DHCP Enabled:</label>
+					<input type="checkbox" name="dhcp_enabled" value="1"/><br>
+				</div>
+				<div class="form-item">
+					<label for="default_gateway">Default Gateway:</label>
+					<input class="ip" type="text" name="default_gateway" id="default_gateway" />
+				</div>
+				<div class="form-item">
+					<label for="subnet_mask">Subnet Mask:</label>
+					<input class="ip" type="text" name="subnet_mask" id="subnet_mask" />
+				</div>
+				<div class="form-item">
+					<label for="dns_primary">DNS Primary:</label>
+					<input class="ip" type="text" name="dns_primary" id="dns_primary" />
+				</div>
+				<div class="form-item">
+					<label for="dns_secondary">DNS Secondary:</label>
+					<input class="ip" type="text" name="dns_secondary" id="dns_secondary" />
+				</div>
+				<div class="form-item">
+					<label for="static_ip">Static IP:</label>
+					<input class="ip" type="text" name="static_ip" id="static_ip" />
+				</div>
+			</div>
+		</div>
 
-	<button class="accordion" type="button">WiFi</button>
-	<div class="panel">
-		<div class="form-group">
-			<div class="form-item">
-				<label for="wifi_enabled">Enabled:</label>
-				<input type="checkbox" name="wifi_enabled" value="1"/><br>
+		<button class="accordion" type="button">Soft AP</button>
+		<div class="panel">
+			<div class="form-group">
+				<div class="form-item">
+					<label for="ap_ssid">Soft AP SSID:</label>
+					<input type="text" name="ap_ssid" id="ap_ssid" />
+				</div>
+				<div class="form-item">
+					<label for="ap_password">Soft AP Password:</label>
+					<input type="text" name="ap_password" id="ap_password" />
+				</div>
 			</div>
-			<div class="form-item">
-				<label for="ssid">Network:</label>
-				<select name="ssid" id="ssid"></select><br>
+		</div>
+
+		<button class="accordion" type="button">UDP Broadcast</button>
+		<div class="panel">
+			<div class="form-group">
+				<div class="form-item">
+					<label for="udp_broadcast_enabled">UDP Broadcast:</label>
+					<input type="checkbox" name="udp_broadcast_enabled" value="1"/><br>
+				</div>
+				<div class="form-item">
+					<label for="wifi_device_id">UDP Discovery Name:</label>
+					<input type="text" name="wifi_device_id" id="wifi_device_id" />
+				</div>
 			</div>
-			<div class="form-item">
-				<label for="password">Password:</label>
-				<input type="password" name="ssid_password" id="password" />
+		</div>
+
+		<button class="accordion" type="button">Serial</button>
+		<div class="panel">
+			<div class="form-group">
+				<div class="form-item">
+					<label for="baud_rate">Baud Rate:</label>
+					<select name="baud_rate" id="baud_rate">
+						<option value="9600">9600</option>
+						<option value="38400">38400</option>
+						<option value="57600">57600</option>
+						<option value="115200">115200</option>
+					</select><br>
+				</div>
 			</div>
-			<div class="form-item">
-				<label for="dhcp_enabled">DHCP Enabled:</label>
-				<input type="checkbox" name="dhcp_enabled" value="1"/><br>
+		</div>
+
+		<button class="accordion" type="button">Bluetooth</button>
+		<div class="panel">
+			<div class="form-group">
+				<div class="form-item">
+					<label for="bluetooth_enabled">Bluetooth Enabled:</label>
+					<input type="checkbox" name="bluetooth_enabled" value="1"/><br>
+				</div>
+				<div class="form-item">
+					<label for="bluetooth_name">Bluetooth Discovery Name:</label>
+					<input type="text" name="bluetooth_name" id="bluetooth_name" />
+				</div>
+				<div class="form-item">
+					<label for="bluetooth_pairing">Bluetooth Pairing Code:</label>
+					<input type="text" name="bluetooth_pairing" id="bluetooth_pairing" />
+				</div>
 			</div>
-			<div class="form-item">
-				<label for="default_gateway">Default Gateway:</label>
-				<input class="ip" type="text" name="default_gateway" id="default_gateway" />
+		</div>
+
+		<button class="accordion" type="button">TCP</button>
+		<div class="panel">
+			<div class="form-group">
+				<div class="form-item">
+					<label for="tcp_listener_enabled">TCP Server Enabled:</label>
+					<input type="checkbox" name="tcp_listener_enabled" value="1"/><br>
+				</div>
+				<div class="form-item">
+					<label for="tcp_listen_port">TCP Listen Port:</label>
+					<input type="text" name="tcp_listen_port" id="tcp_listen_port" />
+				</div>
 			</div>
-			<div class="form-item">
-				<label for="subnet_mask">Subnet Mask:</label>
-				<input class="ip" type="text" name="subnet_mask" id="subnet_mask" />
+		</div>
+
+		<button class="accordion" type="button">HTTP Control</button>
+		<div class="panel">
+			<div class="form-group">
+				<div class="form-item">
+					<label for="http_control_enabled">HTTP Control Enabled:</label>
+					<input type="checkbox" name="http_control_enabled" value="1"/><br>
+				</div>
 			</div>
-			<div class="form-item">
-				<label for="dns_primary">DNS Primary:</label>
-				<input class="ip" type="text" name="dns_primary" id="dns_primary" />
-			</div>
-			<div class="form-item">
-				<label for="dns_secondary">DNS Secondary:</label>
-				<input class="ip" type="text" name="dns_secondary" id="dns_secondary" />
-			</div>
-			<div class="form-item">
-				<label for="static_ip">Static IP:</label>
-				<input class="ip" type="text" name="static_ip" id="static_ip" />
+		</div>
+
+		<button class="accordion" type="button">MQTT</button>
+		<div class="panel">
+			<div class="form-group">
+				<div class="form-item">
+					<label for="mqtt_enabled">MQTT Enabled:</label>
+					<input type="checkbox" name="mqtt_enabled" value="1"/><br>
+				</div>
+				<div class="form-item">
+					<label for="mqtt_host">Host:</label>
+					<input type="text" name="mqtt_host" id="mqtt_host" />
+				</div>
+				<div class="form-item">
+					<label for="mqtt_port">Host Port:</label>
+					<input type="text" name="mqtt_port" id="mqtt_port" />
+				</div>
+				<div class="form-item">
+					<label for="mqtt_client_id">Client ID:</label>
+					<input type="text" name="mqtt_client_id" id="mqtt_client_id" />
+				</div>
+				<div class="form-item">
+					<label for="mqtt_username">Username:</label>
+					<input type="text" name="mqtt_username" id="mqtt_username" />
+				</div>
+				<div class="form-item">
+					<label for="mqtt_password">Password:</label>
+					<input type="text" name="mqtt_password" id="mqtt_password" />
+				</div>
+				<div class="form-item">
+					<label for="mqtt_subscribe_topic">Subscribe Topic:</label>
+					<input type="text" name="mqtt_subscribe_topic" id="mqtt_subscribe_topic" />
+				</div>
+				<div class="form-item">
+					<label for="mqtt_publish_topic">Publish Topic:</label>
+					<input type="text" name="mqtt_publish_topic" id="mqtt_publish_topic" />
+				</div>
 			</div>
 		</div>
 	</div>
+	<button class="sticky">Save Settings</button>
 
-	<button class="accordion" type="button">Soft AP</button>
-	<div class="panel">
-		<div class="form-group">
-			<div class="form-item">
-				<label for="ap_ssid">Soft AP SSID:</label>
-				<input type="text" name="ap_ssid" id="ap_ssid" />
-			</div>
-			<div class="form-item">
-				<label for="ap_password">Soft AP Password:</label>
-				<input type="text" name="ap_password" id="ap_password" />
-			</div>
-		</div>
-	</div>
-
-	<button class="accordion" type="button">UDP Broadcast</button>
-	<div class="panel">
-		<div class="form-group">
-			<div class="form-item">
-				<label for="udp_broadcast_enabled">UDP Broadcast:</label>
-				<input type="checkbox" name="udp_broadcast_enabled" value="1"/><br>
-			</div>
-			<div class="form-item">
-				<label for="wifi_device_id">UDP Discovery Name:</label>
-				<input type="text" name="wifi_device_id" id="wifi_device_id" />
-			</div>
-		</div>
-	</div>
-
-	<button class="accordion" type="button">Serial</button>
-	<div class="panel">
-		<div class="form-group">
-			<div class="form-item">
-				<label for="baud_rate">Baud Rate:</label>
-				<select name="baud_rate" id="baud_rate">
-					<option value="9600">9600</option>
-					<option value="38400">38400</option>
-					<option value="57600">57600</option>
-					<option value="115200">115200</option>
-				</select><br>
-			</div>
-		</div>
-	</div>
-
-	<button class="accordion" type="button">Bluetooth</button>
-	<div class="panel">
-		<div class="form-group">
-			<div class="form-item">
-				<label for="bluetooth_enabled">Bluetooth Enabled:</label>
-				<input type="checkbox" name="bluetooth_enabled" value="1"/><br>
-			</div>
-			<div class="form-item">
-				<label for="bluetooth_name">Bluetooth Discovery Name:</label>
-				<input type="text" name="bluetooth_name" id="bluetooth_name" />
-			</div>
-			<div class="form-item">
-				<label for="bluetooth_pairing">Bluetooth Pairing Code:</label>
-				<input type="text" name="bluetooth_pairing" id="bluetooth_pairing" />
-			</div>
-		</div>
-	</div>
-
-<button class="accordion" type="button">TCP</button>
-<div class="panel">
-	<div class="form-group">
-		<div class="form-item">
-			<label for="tcp_listener_enabled">TCP Server Enabled:</label>
-			<input type="checkbox" name="tcp_listener_enabled" value="1"/><br>
-		</div>
-		<div class="form-item">
-			<label for="tcp_listen_port">TCP Listen Port:</label>
-			<input type="text" name="tcp_listen_port" id="tcp_listen_port" />
-		</div>
-	</div>
-</div>
-
-<button class="accordion" type="button">HTTP Control</button>
-<div class="panel">
-	<div class="form-group">
-		<div class="form-item">
-			<label for="http_control_enabled">HTTP Control Enabled:</label>
-			<input type="checkbox" name="http_control_enabled" value="1"/><br>
-		</div>
-	</div>
-</div>
-
-<button class="accordion" type="button">MQTT</button>
-<div class="panel">
-	<div class="form-group">
-		<div class="form-item">
-			<label for="mqtt_enabled">MQTT Enabled:</label>
-			<input type="checkbox" name="mqtt_enabled" value="1"/><br>
-		</div>
-		<div class="form-item">
-			<label for="mqtt_host">Host:</label>
-			<input type="text" name="mqtt_host" id="mqtt_host" />
-		</div>
-		<div class="form-item">
-			<label for="mqtt_port">Host Port:</label>
-			<input type="text" name="mqtt_port" id="mqtt_port" />
-		</div>
-		<div class="form-item">
-			<label for="mqtt_client_id">Client ID:</label>
-			<input type="text" name="mqtt_client_id" id="mqtt_client_id" />
-		</div>
-		<div class="form-item">
-			<label for="mqtt_username">Username:</label>
-			<input type="text" name="mqtt_username" id="mqtt_username" />
-		</div>
-		<div class="form-item">
-			<label for="mqtt_password">Password:</label>
-			<input type="text" name="mqtt_password" id="mqtt_password" />
-		</div>
-		<div class="form-item">
-			<label for="mqtt_subscribe_topic">Subscribe Topic:</label>
-			<input type="text" name="mqtt_subscribe_topic" id="mqtt_subscribe_topic" />
-		</div>
-		<div class="form-item">
-			<label for="mqtt_publish_topic">Publish Topic:</label>
-			<input type="text" name="mqtt_publish_topic" id="mqtt_publish_topic" />
-		</div>
-	</div>
-</div>
-<button class="sticky">Save Settings</button>
 
 <script>
 class miniQ{
@@ -415,12 +425,36 @@ for (i = 0; i < acc.length; i++) {
 	acc[i].addEventListener("click", function() {
 		this.classList.toggle("active");
 		var panel = this.nextElementSibling;
+
 		if (panel.style.maxHeight){
 			panel.style.maxHeight = null;
+			panel.style.paddingBottom = "0";
 		} else {
 			panel.style.maxHeight = panel.scrollHeight + "px";
+			// panel.style.paddingBottom = 30 + "px";
 		}
 	});
+}
+var observer = new MutationObserver(function(mutations) {
+	mutations.forEach(function(mutationRecord) {
+		// console.log(mutationRecord);
+		// console.log(mutationRecord.target.clientHeight);
+		// console.log('panel style changed!');
+		var panel = mutationRecord.target;
+		console.log(panel.style.maxHeight);
+		if(panel.style.maxHeight != null){
+			if(panel.style.maxHeight != 0){
+				setTimeout(function(){
+					panel.scrollIntoView(true);
+				}, 100);
+			}
+		}
+	});
+});
+var panels = document.getElementsByClassName("panel");
+var p;
+for(p = 0; p < panels.length; p++){
+	observer.observe(panels[p], {attributes : true, attributeFilter : ['style']});
 }
 </script>
 </form>
