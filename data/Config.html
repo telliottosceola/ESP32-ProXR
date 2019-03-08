@@ -133,12 +133,25 @@
 		<div class="panel">
 			<div class="form-group">
 				<div class="form-item">
-					<label for="baud_rate">Baud Rate:</label>
+					<label for="baud_rate">Board Baud Rate:</label>
 					<select name="baud_rate" id="baud_rate">
 						<option value="9600">9600</option>
 						<option value="38400">38400</option>
 						<option value="57600">57600</option>
 						<option value="115200">115200</option>
+						<option value="128000">128000</option>
+						<option value="115200">256000</option>
+					</select><br>
+				</div>
+				<div class="form-item">
+					<label for="usb_baud_rate">USB Baud Rate:</label>
+					<select name="usb_baud_rate" id="usb_baud_rate">
+						<option value="9600">9600</option>
+						<option value="38400">38400</option>
+						<option value="57600">57600</option>
+						<option value="115200">115200</option>
+						<option value="128000">128000</option>
+						<option value="115200">256000</option>
 					</select><br>
 				</div>
 			</div>
@@ -182,6 +195,18 @@
 				<div class="form-item">
 					<label for="http_control_enabled">HTTP Control Enabled:</label>
 					<input type="checkbox" name="http_control_enabled" value="1"/><br>
+				</div>
+				<div class="form-item">
+					<label for="relay_count">Number of Relays:</label>
+					<select name="relay_count" id="relay_count">
+						<option value="1">1</option>
+						<option value="2">2</option>
+						<option value="4">4</option>
+						<option value="8">8</option>
+						<option value="16">16</option>
+						<option value="24">24</option>
+						<option value="32">32</option>
+					</select><br>
 				</div>
 			</div>
 		</div>
@@ -431,7 +456,7 @@ for (i = 0; i < acc.length; i++) {
 			panel.style.paddingBottom = "0";
 		} else {
 			panel.style.maxHeight = panel.scrollHeight + "px";
-			// panel.style.paddingBottom = 30 + "px";
+			panel.style.paddingBottom = 1 + "px";
 		}
 	});
 }

@@ -13,8 +13,10 @@ void SoftAPHandler::init(Settings &s){
   WiFi.mode(WIFI_AP);
   delay(200);
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
+  #ifdef DEBUG
   Serial.printf("AP SSID:%s\n",settings->apSSID);
   Serial.printf("AP Pass:%s\n",settings->apPass);
+  #endif
   WiFi.softAP(settings->apSSID, settings->apPass, 1, 0, 1);
   #ifdef WALLED_GARDEN
   dnsServer.setTTL(0);
@@ -46,7 +48,9 @@ void SoftAPHandler::onRequest(AsyncWebServerRequest *request){
     return;
   }
   if(request->url() == "/loadSettings"){
+    #ifdef DEBUG
     Serial.println("/loadSettings request");
+    #endif
     request->send(200, "text/plain", settings->returnSettings("...","...",false));
     return;
   }
@@ -54,6 +58,34 @@ void SoftAPHandler::onRequest(AsyncWebServerRequest *request){
     request->send(200, "text/plain", "Resetting all settings, gateway will power cycle and will now be in setup mode");
     if(settings->factoryReset()){
       ESP.restart();
+    }
+  }
+  if(request->url() == "/update"){
+    if(request->args() > 0 && request->hasArg("body")){
+      uint8_t zero = 0;
+      String requestString = request->arg(zero);
+      DynamicJsonBuffer requestjsonBuffer;
+      JsonObject& requestRoot = requestjsonBuffer.parseObject(requestString);
+      requestRoot["wifi_enabled"] = requestRoot.containsKey("wifi_enabled");
+      requestRoot["dhcp_enabled"] = requestRoot.containsKey("dhcp_enabled");
+      requestRoot["udp_broadcast_enabled"] = requestRoot.containsKey("udp_broadcast_enabled");
+      requestRoot["bluetooth_enabled"] = requestRoot.containsKey("bluetooth_enabled");
+      requestRoot["tcp_listener_enabled"] = requestRoot.containsKey("tcp_listener_enabled");
+      requestRoot["http_enabled"] = requestRoot.containsKey("http_enabled");
+      requestRoot["mqtt_enabled"] = requestRoot.containsKey("mqtt_enabled");
+      String finalFinal;
+      requestRoot.printTo(finalFinal);
+      if(!settings->storeSettings(finalFinal)){
+        #ifdef DEBUG
+        Serial.println("Failed to store settings");
+        #endif
+        request->send(201, "text/plain","Settings update failed");
+        return;
+      }else{
+        request->send(200, "text/plain","Settings updated");
+        delay(500);
+        ESP.restart();
+      }
     }
   }
   #ifdef DEBUG
@@ -64,9 +96,11 @@ void SoftAPHandler::onRequest(AsyncWebServerRequest *request){
 }
 
 void SoftAPHandler::configUpdate(AsyncWebServerRequest *request){
+  #ifdef DEBUG
   Serial.println("Running configUpdate");
   Serial.printf("Args: %i\n",request->args());
   Serial.printf("Params: %i\n",request->params());
+  #endif
 
   if(request->args() > 0 && request->hasArg("body")){
     Serial.print("arg(0)");
@@ -74,17 +108,23 @@ void SoftAPHandler::configUpdate(AsyncWebServerRequest *request){
     String requestString = request->arg(zero);
     Serial.println(requestString);
     delay(500);
-    StaticJsonBuffer<1200> requestjsonBuffer;
+    DynamicJsonBuffer requestjsonBuffer;
     JsonObject& requestRoot = requestjsonBuffer.parseObject(requestString);
     requestRoot["wifi_enabled"] = requestRoot.containsKey("wifi_enabled");
     requestRoot["dhcp_enabled"] = requestRoot.containsKey("dhcp_enabled");
+    requestRoot["udp_broadcast_enabled"] = requestRoot.containsKey("udp_broadcast_enabled");
     requestRoot["bluetooth_enabled"] = requestRoot.containsKey("bluetooth_enabled");
+    requestRoot["tcp_listener_enabled"] = requestRoot.containsKey("tcp_listener_enabled");
+    requestRoot["http_enabled"] = requestRoot.containsKey("http_enabled");
     requestRoot["mqtt_enabled"] = requestRoot.containsKey("mqtt_enabled");
 
     String finalFinal;
     requestRoot.printTo(finalFinal);
 
     request->send(200, "text/plain", "Settings updated");
+    #ifdef DEBUG
+    Serial.println("Updating settings");
+    #endif
     delay(500);
     if(settings->storeSettings(finalFinal)){
       ESP.restart();
