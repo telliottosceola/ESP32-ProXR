@@ -4,7 +4,7 @@
 AsyncWebServer controlServer(80);
 
 void HTTPControl::init(){
-  controlServer.on("/sendCommand", std::bind(&HTTPControl::onRequest, this, std::placeholders::_1));
+  controlServer.onNotFound(std::bind(&HTTPControl::onRequest, this, std::placeholders::_1));
   controlServer.begin();
 }
 
@@ -28,7 +28,9 @@ void HTTPControl::onRequest(AsyncWebServerRequest *request){
       }
 
     }
+    return;
   }
+  request->send(SPIFFS, "/Control.html");
 }
 
 void HTTPControl::registerHTTPDataCallback(void(*HTTPDataCallback)(uint8_t*data, int dataLen, AsyncWebServerRequest *request)){
