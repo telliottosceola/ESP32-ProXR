@@ -103,10 +103,14 @@ void SoftAPHandler::configUpdate(AsyncWebServerRequest *request){
   #endif
 
   if(request->args() > 0 && request->hasArg("body")){
+    #ifdef DEBUG
     Serial.print("arg(0)");
+    #endif
     uint8_t zero = 0;
     String requestString = request->arg(zero);
+    #ifdef DEBUG
     Serial.println(requestString);
+    #endif
     delay(500);
     DynamicJsonBuffer requestjsonBuffer;
     JsonObject& requestRoot = requestjsonBuffer.parseObject(requestString);
