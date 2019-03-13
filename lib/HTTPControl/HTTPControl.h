@@ -8,12 +8,13 @@
 
 class HTTPControl{
 public:
-  void init();
+  void init(Settings &s);
   void onRequest(AsyncWebServerRequest *request);
   void registerHTTPDataCallback(void(*HTTPDataCallback)(uint8_t*data, int dataLen, AsyncWebServerRequest *request));
   bool requestPending = false;
 private:
 
   void (*_httpDataCallback)(uint8_t*data, int dataLen, AsyncWebServerRequest *request);
+  Settings *settings;
 };
 #endif

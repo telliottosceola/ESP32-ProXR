@@ -1,17 +1,125 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+  <title>Relay Control Interface</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-  </style>
-  <title>Control Interface</title>
-</head>
-<div>
-</div>
-<script>
-  document.addEventListener("DOMContentLoaded",function(){
-    console.log("DOMContentLoaded");
-  });
-</script>
+  /* The switch - the box around the slider */
+  .switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
 
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+  </style>
+  <script type="text/javascript">
+
+  var relayCount;
+
+  document.addEventListener("DOMContentLoaded", function() {
+    var xhr = new XMLHttpRequest();
+		xhr.open('GET', '/relayCount');
+		xhr.onreadystatechange = function () {
+			if(xhr.readyState === xhr.DONE) {
+				if(xhr.status === 200){
+          relayCount = xhr.responseText;
+          console.log('relay count: '+relayCount);
+          for(i = 0; i < relayCount; i++){
+            var div = document.createElement("div");
+            var label = document.createElement('label');
+            label.style.fontSize = "xx-large";
+            label.style.marginTop = "10px";
+            label.appendChild(document.createTextNode('Relay'+(i+1)+' '));
+
+            var labelSwitch = document.createElement('label');
+            labelSwitch.classList.add('switch');
+            var checkBox = document.createElement('input');
+            checkBox.type = "checkbox";
+            checkBox.id=i;
+            checkBox.addEventListener( 'change', function() {
+              if(this.checked) {
+                console.log("turn on relay "+this.id);
+                controlRelay('/relayON?relay=', (this.id));
+                // var relayXHR = new XMLHttpRequest();
+                // xhr.open('GET', '/relayON?relay='+(this.id+1));
+                // xhr.send();
+              } else {
+                console.log("turn off relay "+this.id);
+                controlRelay('/relayOFF?relay=', (this.id));
+                // var relayXHR = new XMLHttpRequest();
+                // xhr.open('GET', '/relayOFF?relay='+(this.id+1));
+                // xhr.send();
+              }
+            });
+            var switchSpan = document.createElement('span');
+            switchSpan.classList.add('slider');
+            labelSwitch.appendChild(checkBox);
+            labelSwitch.appendChild(switchSpan);
+            label.appendChild(labelSwitch)
+            div.appendChild(label);
+            document.body.appendChild(div);
+          }
+        }else{
+          console.log("Error, status: "+xhr.status);
+        }
+      }
+    };
+    xhr.send();
+  });
+
+  function controlRelay(url, id){
+    var relayXHR = new XMLHttpRequest();
+    relayXHR.open('GET', url+id);
+    relayXHR.send();
+  }
+  </script>
+</head>
+<body>
+</body>
 </html>
