@@ -245,6 +245,7 @@ void Settings::setPublicVariables(JsonObject& settingsJSON){
   strcpy(mqttPublishTopic, settingsJSON["mqtt_publish_topic"]);
   mqttPort = settingsJSON["mqtt_port"].as<int>();
   mqttEnabled = settingsJSON["mqtt_enabled"].as<bool>();
+  relayCount = settingsJSON["relay_count"].as<int>();
 
   JsonArray& staticIPArray = settingsJSON["static_ip"];
   for(int i = 0; i < 4; i++){

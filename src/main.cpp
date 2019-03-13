@@ -51,7 +51,7 @@ void setup() {
       }
       if(settings.httpControlEnabled){
         httpControl.registerHTTPDataCallback(httpDataCallback);
-        httpControl.init();
+        httpControl.init(settings);
       }
       if(settings.mqttEnabled){
         mqtt.registerMQTTDataCallback(mqttDataCallback);

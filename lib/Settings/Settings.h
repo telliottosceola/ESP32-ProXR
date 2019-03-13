@@ -50,6 +50,8 @@ public:
   char mqttSubscribeTopic[50];
   char mqttPublishTopic[50];
 
+  int relayCount;
+
 private:
   FileSystem fileSystem;
   String discoveredNetworks;
