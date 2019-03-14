@@ -33,9 +33,14 @@ void HTTPControl::onRequest(AsyncWebServerRequest *request){
           commandBytes[index] = commandDataArray[index];
           index++;
         }
-        _httpDataCallback(commandBytes, sizeof(commandBytes), request);
+        if(commandBytes[0] == 254){
+          uint8_t apiPacket[sizeof(commandBytes)+3];
+          wrapAPI(commandBytes, sizeof(commandBytes), apiPacket);
+          _httpDataCallback(apiPacket, sizeof(apiPacket), request);
+        }else{
+          _httpDataCallback(commandBytes, sizeof(commandBytes), request);
+        }
       }
-
     }
     return;
   }
@@ -73,7 +78,9 @@ void HTTPControl::onRequest(AsyncWebServerRequest *request){
       }
       command[1] = relayCommand;
       command[2] = bank;
-      _httpDataCallback(command, sizeof(command), request);
+      uint8_t apiPacket[6];
+      wrapAPI(command, 3, apiPacket);
+      _httpDataCallback(apiPacket, sizeof(apiPacket), request);
     }
 
     return;
@@ -108,7 +115,9 @@ void HTTPControl::onRequest(AsyncWebServerRequest *request){
       }
       command[1] = relayCommand;
       command[2] = bank;
-      _httpDataCallback(command, sizeof(command), request);
+      uint8_t apiPacket[6];
+      wrapAPI(command, 3, apiPacket);
+      _httpDataCallback(apiPacket, sizeof(apiPacket), request);
     }
 
     return;
@@ -118,4 +127,19 @@ void HTTPControl::onRequest(AsyncWebServerRequest *request){
 
 void HTTPControl::registerHTTPDataCallback(void(*HTTPDataCallback)(uint8_t*data, int dataLen, AsyncWebServerRequest *request)){
   _httpDataCallback = HTTPDataCallback;
+}
+
+void HTTPControl::wrapAPI(uint8_t* data, size_t dataLen, uint8_t* buffer){
+  uint8_t packet[dataLen+3];
+  packet[0] = 170;
+  packet[1] = dataLen;
+  int cs = packet[0]+packet[1];
+  for(size_t i = 0; i < dataLen; i++){
+    packet[i+2] = data[i];
+    cs+=data[i];
+  }
+  uint8_t csByte = cs&255;
+  packet[sizeof(packet)-1] = csByte;
+  memcpy(buffer, packet, sizeof(packet));
+  return;
 }

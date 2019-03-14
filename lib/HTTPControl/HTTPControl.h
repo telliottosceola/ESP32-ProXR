@@ -16,5 +16,6 @@ private:
 
   void (*_httpDataCallback)(uint8_t*data, int dataLen, AsyncWebServerRequest *request);
   Settings *settings;
+  void wrapAPI(uint8_t* data, size_t dataLen, uint8_t* buffer);
 };
 #endif
