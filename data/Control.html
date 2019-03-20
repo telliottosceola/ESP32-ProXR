@@ -108,6 +108,8 @@ input:checked + .slider:before {
 }
 
   var relayCount;
+  var controllerWebSocket;
+  var sentTime;
 
   document.addEventListener("DOMContentLoaded", function() {
     var xhr = new XMLHttpRequest();
@@ -117,14 +119,13 @@ input:checked + .slider:before {
 				if(xhr.status === 200){
           relayCount = xhr.responseText;
           console.log('relay count: '+relayCount);
-          (function wrap(){
-            getRelayStatus();
-            setTimeout( wrap, 3000 );
-          })();
           var topDiv = document.createElement("div");
           topDiv.className = 'content-box';
           document.body.appendChild(topDiv);
           var bitIndex = 1;
+          var relayOnCommand = 108;
+          var relayOffCommand = 100;
+          var bank = 1;
           for(i = 0; i < relayCount; i++){
             var div = document.createElement("div");
             div.className = 'row-full';
@@ -139,21 +140,33 @@ input:checked + .slider:before {
             checkBox.type = "checkbox";
             checkBox.id=i;
             checkBox.setAttribute('bitIndex', bitIndex);
-            checkBox.setAttribute('justSet', 'false');
             if(bitIndex != 128){
               bitIndex*=2;
             }else{
               bitIndex = 1;
             }
+            checkBox.setAttribute('justSet', 'false');
+            var onCommandArray = [254, relayOnCommand, bank];
+            var OffCommandArray = [254, relayOffCommand, bank];
+            if(relayOnCommand < 116){
+              relayOnCommand++;
+              relayOffCommand++;
+            }else{
+              relayOnCommand = 108;
+              relayOffCommand = 100;
+              bank++;
+            }
+
+            checkBox.setAttribute('onCommand', onCommandArray);
+            checkBox.setAttribute('offCommand', OffCommandArray);
             checkBox.addEventListener( 'change', function() {
+              sentTime = new Date();
               if(this.checked) {
-                console.log("turn on relay "+this.id);
                 checkBox.setAttribute('justSet', 'true');
-                controlRelay('/relayON?relay=', (this.id));
+                controlRelay('['+this.getAttribute('onCommand')+']');
               } else {
-                console.log("turn off relay "+this.id);
                 checkBox.setAttribute('justSet', 'true');
-                controlRelay('/relayOFF?relay=', (this.id));
+                controlRelay('['+this.getAttribute('offCommand')+']');
               }
             });
             var switchSpan = document.createElement('span');
@@ -164,36 +177,41 @@ input:checked + .slider:before {
             div.appendChild(label);
             topDiv.appendChild(div);
           }
+
         }else{
           console.log("Error, status: "+xhr.status);
         }
       }
     };
     xhr.send();
-  });
+    controllerWebSocket = new WebSocket("ws://192.168.1.44/ws");
+    controllerWebSocket.onopen = function() {
+      (function wrap(){
+        getRelayStatus();
+        setTimeout( wrap, 3000 );
+      })();
+    };
 
-  function controlRelay(url, id){
-    var relayXHR = new XMLHttpRequest();
-    relayXHR.open('GET', url+id);
-    relayXHR.send();
+    controllerWebSocket.onmessage = function(event){
+      // console.log(event.data);
+      var messageArray = event.data;
+      messageArray = messageArray.substring(1, messageArray.length-1);
+      messageArray = messageArray.split(',');
+      //If length of response is 35 then it's probably a response to read status of all relays.
+      if(messageArray.length == 35){
+        setSwitches(messageArray);
+      }else{
+        console.log('length of array was'+messageArray.length);
+      }
+    }
+  });
+  function controlRelay(command){
+    // console.log('controlRelay called');
+    console.log("Sending: "+command);
+    controllerWebSocket.send(command);
   }
   function getRelayStatus(){
-    console.log('getRelayStatus called');
-    var statusXHR = new XMLHttpRequest();
-    statusXHR.open('GET', 'sendCommand?data=[254,124,0]');
-    statusXHR.onreadystatechange = function () {
-			if(statusXHR.readyState === statusXHR.DONE) {
-				if(statusXHR.status === 200){
-          var returnString = statusXHR.responseText;
-          console.log("returnString: "+returnString);
-          var bankStatusArray = returnString.split(' ');
-          console.log("Bank Status Array: "+bankStatusArray);
-          idOffset = 0;
-          setSwitches(bankStatusArray);
-        }
-      }
-    };
-    statusXHR.send();
+    controllerWebSocket.send("[254,124,0]");
   }
   function setSwitches(statusArray){
     idOffset = 0;
@@ -202,10 +220,6 @@ input:checked + .slider:before {
         var id = i+idOffset;
         var el = document.getElementById(id);
         if(el){
-          console.log('bitIndex: '+parseInt(el.getAttribute('bitIndex'),10));
-          console.log('Bit set? '+parseInt(statusArray[j]) & parseInt(el.getAttribute('bitIndex'),10));
-          console.log('bank status: '+statusArray[j]);
-          console.log('bank status: '+parseInt(statusArray[j]));
           if(el.getAttribute('justSet') == 'true'){
             el.setAttribute('justSet', 'false');
             continue;
@@ -222,8 +236,13 @@ input:checked + .slider:before {
       idOffset+=8;
     }
   }
+  function testWS(){
+    console.log("Testing Web Socket");
+    controllerWebSocket.send("[254,33]");
+  }
   </script>
 </head>
 <body>
+  <input id="WS Test" type="button" value="clickme" onclick="testWS();" />
 </body>
 </html>

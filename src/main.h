@@ -40,6 +40,7 @@ void deviceDataCallback(uint8_t* data, int dataLen);
 void tcpDataCallback(uint8_t* data, int dataLen);
 void bluetoothDataCallback(uint8_t* data, int dataLen);
 void httpDataCallback(uint8_t* data, int dataLen, AsyncWebServerRequest *request);
+void wsDataCallback(uint8_t* data, int dataLen);
 void mqttDataCallback(uint8_t* data, int dataLen);
 
 bool setupMode = false;

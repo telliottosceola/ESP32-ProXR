@@ -2,12 +2,18 @@
 #include <HTTPControl.h>
 
 #define DEBUG
+unsigned long commandReceiveTime = millis();
 
 AsyncWebServer controlServer(80);
+AsyncWebSocket ws("/ws");
+AsyncEventSource events("/events");
 
 void HTTPControl::init(Settings &s){
   settings = &s;
   controlServer.onNotFound(std::bind(&HTTPControl::onRequest, this, std::placeholders::_1));
+  ws.onEvent(std::bind(&HTTPControl::onEvent, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6));
+  controlServer.addHandler(&ws);
+  controlServer.addHandler(&events);
   controlServer.begin();
 }
 
@@ -53,7 +59,6 @@ void HTTPControl::onRequest(AsyncWebServerRequest *request){
       String relayString = request->arg("relay");
       int relayNumber = relayString.toInt();
       relayNumber +=1;
-      Serial.printf("Turn on relay %i\n", relayNumber);
       uint8_t command[3];
       command[0] = 254;
       uint8_t bank = 1;
@@ -90,7 +95,6 @@ void HTTPControl::onRequest(AsyncWebServerRequest *request){
       String relayString = request->arg("relay");
       int relayNumber = relayString.toInt();
       relayNumber +=1;
-      Serial.printf("Turn off relay %i\n", relayNumber);
       uint8_t command[3];
       command[0] = 254;
       uint8_t bank = 1;
@@ -125,8 +129,68 @@ void HTTPControl::onRequest(AsyncWebServerRequest *request){
   request->send(SPIFFS, "/Control.html");
 }
 
+void HTTPControl::onEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len){
+  if(type == WS_EVT_CONNECT){
+    //client connected
+    hasClient = true;
+    connectedClient = client;
+    wsServer = server;
+  } else if(type == WS_EVT_DISCONNECT){
+    //client disconnected
+    hasClient = true;
+  } else if(type == WS_EVT_DATA){
+    commandReceiveTime = millis();
+    AwsFrameInfo * info = (AwsFrameInfo*)arg;
+    if(info->final && info->index == 0 && info->len == len){
+      if(info->opcode == WS_TEXT){
+        data[len] = 0;
+        DynamicJsonBuffer jsonBuffer;
+        JsonArray& commandDataArray = jsonBuffer.parseArray((char*)data);
+        if(commandDataArray.success()){
+          uint8_t commandBytes[commandDataArray.size()];
+          int index = 0;
+          for(int value : commandDataArray){
+            commandBytes[index] = commandDataArray[index];
+            index++;
+          }
+          if(commandBytes[0] == 254){
+            uint8_t apiPacket[sizeof(commandBytes)+3];
+            wrapAPI(commandBytes, sizeof(commandBytes), apiPacket);
+            _WSDataCallback(apiPacket, sizeof(apiPacket));
+          }else{
+            _WSDataCallback(commandBytes, sizeof(commandBytes));
+          }
+        }
+      } else {
+      }
+    }
+  }
+}
+
+void HTTPControl::sendToClient(uint8_t* data, int dataLen){
+  if(!hasClient){
+    return;
+  }
+  if(connectedClient->status() != WS_CONNECTED){
+    return;
+  }
+
+  DynamicJsonBuffer jsonBuffer;
+  JsonArray& dataArray = jsonBuffer.createArray();
+  for(int i = 0; i < dataLen; i++){
+    dataArray.add(data[i]);
+  }
+  char clientString[dataArray.measureLength()+1];
+  dataArray.printTo(clientString, sizeof(clientString));
+  connectedClient->text(clientString, sizeof(clientString));
+}
+
 void HTTPControl::registerHTTPDataCallback(void(*HTTPDataCallback)(uint8_t*data, int dataLen, AsyncWebServerRequest *request)){
   _httpDataCallback = HTTPDataCallback;
+}
+
+void HTTPControl::registerWSDataCallback(void(*WSDataCallback)(uint8_t*data, int dataLen)){
+  _WSDataCallback = WSDataCallback;
 }
 
 void HTTPControl::wrapAPI(uint8_t* data, size_t dataLen, uint8_t* buffer){

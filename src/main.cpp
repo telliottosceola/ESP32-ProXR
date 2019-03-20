@@ -51,6 +51,7 @@ void setup() {
       }
       if(settings.httpControlEnabled){
         httpControl.registerHTTPDataCallback(httpDataCallback);
+        httpControl.registerWSDataCallback(wsDataCallback);
         httpControl.init(settings);
       }
       if(settings.mqttEnabled){
@@ -140,6 +141,9 @@ void deviceDataCallback(uint8_t* data, int dataLen){
     httpControl.requestPending = false;
     pendingRequest->send(200, "text/plain", responseData);
   }
+  if(settings.httpControlEnabled && httpControl.hasClient){
+    httpControl.sendToClient(data, dataLen);
+  }
   if(settings.mqttEnabled){
     mqtt.mqttPublish(data, dataLen);
   }
@@ -162,6 +166,10 @@ void httpDataCallback(uint8_t* data, int dataLen, AsyncWebServerRequest *request
   pendingRequest = request;
   device.write(data, dataLen);
   requestSendTime = millis();
+}
+void wsDataCallback(uint8_t* data, int dataLen){
+  rgbLED.setMode(rgbLED.MODE_DATA_RECEIVED);
+  device.write(data, dataLen);
 }
 
 void mqttDataCallback(uint8_t* data, int dataLen){
