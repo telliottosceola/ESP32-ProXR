@@ -13,9 +13,12 @@ void setup() {
   }
   settings.loadSettings();
 
-  rgbLED.init(2,15,13,COMMON_ANODE, false);
+
+
+  rgbLED.init(2,21,13,COMMON_ANODE, false);
   rgbLED.setMode(rgbLED.MODE_BOOT);
   rgbLED.loop();
+  delay(1000);
   wifiHandler.init(settings, rgbLED);
   gpioHandler.init(settings, rgbLED);
 
