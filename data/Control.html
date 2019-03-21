@@ -110,6 +110,7 @@ input:checked + .slider:before {
   var relayCount;
   var controllerWebSocket;
   var sentTime;
+  var bankStatusCommand;
 
   document.addEventListener("DOMContentLoaded", function() {
     var xhr = new XMLHttpRequest();
@@ -184,7 +185,7 @@ input:checked + .slider:before {
       }
     };
     xhr.send();
-    controllerWebSocket = new WebSocket("ws://192.168.1.44/ws");
+    controllerWebSocket = new WebSocket("ws://192.168.1.15/ws");
     controllerWebSocket.onopen = function() {
       (function wrap(){
         getRelayStatus();
@@ -198,7 +199,7 @@ input:checked + .slider:before {
       messageArray = messageArray.substring(1, messageArray.length-1);
       messageArray = messageArray.split(',');
       //If length of response is 35 then it's probably a response to read status of all relays.
-      if(messageArray.length == 35){
+      if(bankStatusCommand){
         setSwitches(messageArray);
       }else{
         console.log('length of array was'+messageArray.length);
@@ -209,13 +210,15 @@ input:checked + .slider:before {
     // console.log('controlRelay called');
     console.log("Sending: "+command);
     controllerWebSocket.send(command);
+    bankStatusCommand = false;
   }
   function getRelayStatus(){
     controllerWebSocket.send("[254,124,0]");
+    bankStatusCommand = true;
   }
   function setSwitches(statusArray){
     idOffset = 0;
-    for(j = 2; j < 35; j++){
+    for(j = 2; j < statusArray.length; j++){
       for(i = 0; i < 8; i++){
         var id = i+idOffset;
         var el = document.getElementById(id);
