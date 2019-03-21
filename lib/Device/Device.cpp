@@ -6,6 +6,7 @@ void Device::init(int baudRate){
 }
 void Device::loop(){
   if(deviceSerial.available()){
+    delay(10);
     uint8_t buffer[256];
     int index = 0;
     while(deviceSerial.available() && index < 255){
