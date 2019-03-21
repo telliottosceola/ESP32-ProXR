@@ -230,6 +230,7 @@ void Settings::setPublicVariables(JsonObject& settingsJSON){
   bluetoothEnabled = settingsJSON["bluetooth_enabled"].as<bool>();
   httpControlEnabled = settingsJSON["http_control_enabled"].as<bool>();
   udpBroadcastEnabled = settingsJSON["udp_broadcast_enabled"].as<bool>();
+  udpRemoteBroadcastEnabled = settingsJSON["udp_remote_enabled"].as<bool>();
   tcpListenerEnabled = settingsJSON["tcp_listener_enabled"].as<bool>();
   memset(mqttHost, 0, 50);
   strcpy(mqttHost, settingsJSON["mqtt_host"]);

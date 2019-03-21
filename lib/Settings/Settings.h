@@ -20,6 +20,7 @@ public:
   bool httpControlEnabled;
   bool mqttEnabled;
   bool udpBroadcastEnabled;
+  bool udpRemoteBroadcastEnabled;
   bool tcpListenerEnabled;
 
   char wlanSSID[50];

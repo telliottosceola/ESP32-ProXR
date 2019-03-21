@@ -9,6 +9,7 @@ public:
   void loop();
   bool ready = false;
 private:
+  Settings* settings;
   WiFiUDP udp;
   IPAddress broadcastIP;
   uint16_t broadcastPort = 55555;

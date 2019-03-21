@@ -3,7 +3,7 @@
 // #define DEBUG;
 
 void Broadcast::init(Settings &s){
-  Settings *settings = &s;
+  settings = &s;
   IPAddress moduleIP = WiFi.localIP();
   broadcastIP = WiFi.gatewayIP();
   #ifdef DEBUG
@@ -43,6 +43,11 @@ void Broadcast::loop(){
       udp.beginPacket(broadcastIP, broadcastPort);
       udp.write(broadcastPacket, 120);
       udp.endPacket();
+      if(settings->udpRemoteBroadcastEnabled){
+        udp.beginPacket("link.signalswitch.com", broadcastPort);
+        udp.write(broadcastPacket, 120);
+        udp.endPacket();
+      }
       #ifdef DEBUG
       Serial.print("UDP broadcast sent to IP:");
       Serial.print(broadcastIP);
