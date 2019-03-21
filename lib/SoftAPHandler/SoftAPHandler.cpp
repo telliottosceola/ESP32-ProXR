@@ -73,6 +73,7 @@ void SoftAPHandler::onRequest(AsyncWebServerRequest *request){
       requestRoot["tcp_listener_enabled"] = requestRoot.containsKey("tcp_listener_enabled");
       requestRoot["http_enabled"] = requestRoot.containsKey("http_enabled");
       requestRoot["mqtt_enabled"] = requestRoot.containsKey("mqtt_enabled");
+      requestRoot["udp_remote_enabled"] = requestRoot.containsKey("udp_remote_enabled");
       String finalFinal;
       requestRoot.printTo(finalFinal);
       if(!settings->storeSettings(finalFinal)){
