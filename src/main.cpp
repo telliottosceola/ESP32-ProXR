@@ -30,13 +30,13 @@ void setup() {
     rgbLED.setMode(rgbLED.MODE_SETUP);
     wifiHandler.scanNetworks();
     device.registerDeviceDataCallback(deviceDataCallback);
-    device.init(settings.baudRate);
+    device.init(settings.baudRate, 500);
     softAPHandler.init(settings);
     setupMode = true;
 
   }else{
     device.registerDeviceDataCallback(deviceDataCallback);
-    device.init(settings.baudRate);
+    device.init(settings.baudRate, 500);
     gpioHandler.setupMode = false;
     if(settings.bluetoothEnabled){
       bluetooth.registerBluetoothDataCallback(bluetoothDataCallback);

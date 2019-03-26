@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <HTTPControl.h>
 
-#define DEBUG
+// #define DEBUG
 unsigned long commandReceiveTime = millis();
 
 AsyncWebServer controlServer(80);

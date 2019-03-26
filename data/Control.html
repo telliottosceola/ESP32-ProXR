@@ -113,6 +113,7 @@ input:checked + .slider:before {
   var bankStatusCommand;
 
   document.addEventListener("DOMContentLoaded", function() {
+    var ip = location.host;
     var xhr = new XMLHttpRequest();
 		xhr.open('GET', '/relayCount');
 		xhr.onreadystatechange = function () {
@@ -185,7 +186,7 @@ input:checked + .slider:before {
       }
     };
     xhr.send();
-    controllerWebSocket = new WebSocket("ws://192.168.1.15/ws");
+    controllerWebSocket = new WebSocket("ws://"+ip+"/ws");
     controllerWebSocket.onopen = function() {
       (function wrap(){
         getRelayStatus();
@@ -213,30 +214,33 @@ input:checked + .slider:before {
     bankStatusCommand = false;
   }
   function getRelayStatus(){
-    controllerWebSocket.send("[254,124,0]");
+    controllerWebSocket.send("[171,1,3,254,124,0,41]");
     bankStatusCommand = true;
   }
   function setSwitches(statusArray){
-    idOffset = 0;
-    for(j = 2; j < statusArray.length; j++){
-      for(i = 0; i < 8; i++){
-        var id = i+idOffset;
-        var el = document.getElementById(id);
-        if(el){
-          if(el.getAttribute('justSet') == 'true'){
-            el.setAttribute('justSet', 'false');
-            continue;
-          }
-          if(parseInt(statusArray[j],10) & parseInt(el.getAttribute('bitIndex'),10)){
-            el.checked = true;
+    if(statusArray[0] == 171 && statusArray[1] == 1){
+      console.log("Got response from get relay status command, data was:"+statusArray);
+      idOffset = 0;
+      for(j = 3; j < statusArray.length; j++){
+        for(i = 0; i < 8; i++){
+          var id = i+idOffset;
+          var el = document.getElementById(id);
+          if(el){
+            if(el.getAttribute('justSet') == 'true'){
+              el.setAttribute('justSet', 'false');
+              continue;
+            }
+            if(parseInt(statusArray[j],10) & parseInt(el.getAttribute('bitIndex'),10)){
+              el.checked = true;
+            }else{
+              el.checked = false;
+            }
           }else{
-            el.checked = false;
+            return;
           }
-        }else{
-          return;
         }
+        idOffset+=8;
       }
-      idOffset+=8;
     }
   }
   function testWS(){
