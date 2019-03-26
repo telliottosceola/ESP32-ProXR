@@ -20,7 +20,12 @@ void setup() {
   rgbLED.loop();
   delay(1000);
   wifiHandler.init(settings, rgbLED);
+  wifiHandler.scanNetworks();
   gpioHandler.init(settings, rgbLED);
+
+  httpHandler.registerHTTPDataCallback(httpDataCallback);
+  httpHandler.registerWSDataCallback(wsDataCallback);
+
 
   if(gpioHandler.checkCFGButton() || strcmp("blank",settings.wlanSSID) == 0 || strcmp("",settings.wlanSSID) == 0){
     gpioHandler.setupMode = true;
@@ -31,7 +36,7 @@ void setup() {
     wifiHandler.scanNetworks();
     device.registerDeviceDataCallback(deviceDataCallback);
     device.init(settings.baudRate, 500);
-    softAPHandler.init(settings);
+    httpHandler.init(settings, true, wifiHandler);
     setupMode = true;
 
   }else{
@@ -52,11 +57,7 @@ void setup() {
           tcpServer.init(settings);
         }
       }
-      if(settings.httpControlEnabled){
-        httpControl.registerHTTPDataCallback(httpDataCallback);
-        httpControl.registerWSDataCallback(wsDataCallback);
-        httpControl.init(settings);
-      }
+      httpHandler.init(settings, false, wifiHandler);
       if(settings.mqttEnabled){
         mqtt.registerMQTTDataCallback(mqttDataCallback);
         mqtt.init(settings);
@@ -70,7 +71,7 @@ void loop() {
   rgbLED.loop();
 
   if(setupMode){
-    softAPHandler.loop();
+    httpHandler.loop();
   }else{
     //Run MODE
     device.loop();
@@ -141,11 +142,11 @@ void deviceDataCallback(uint8_t* data, int dataLen){
       sprintf(responseData, "%s%i ", responseData, data[i]);
     }
     requestPending = false;
-    httpControl.requestPending = false;
+    httpHandler.requestPending = false;
     pendingRequest->send(200, "text/plain", responseData);
   }
-  if(settings.httpControlEnabled && httpControl.hasClient){
-    httpControl.sendToClient(data, dataLen);
+  if(settings.httpControlEnabled && httpHandler.hasClient){
+    httpHandler.sendToClient(data, dataLen);
   }
   if(settings.mqttEnabled){
     mqtt.mqttPublish(data, dataLen);
@@ -165,7 +166,7 @@ void bluetoothDataCallback(uint8_t* data, int dataLen){
 void httpDataCallback(uint8_t* data, int dataLen, AsyncWebServerRequest *request){
   rgbLED.setMode(rgbLED.MODE_DATA_RECEIVED);
   requestPending = true;
-  httpControl.requestPending = true;
+  httpHandler.requestPending = true;
   pendingRequest = request;
   device.write(data, dataLen);
   requestSendTime = millis();

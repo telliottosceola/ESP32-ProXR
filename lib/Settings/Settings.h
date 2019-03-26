@@ -53,6 +53,8 @@ public:
 
   int relayCount;
 
+  char defaultHTML[50];
+
 private:
   FileSystem fileSystem;
   String discoveredNetworks;

@@ -12,10 +12,9 @@
 #include <WiFiHandler.h>
 #include <TCPServer.h>
 #include <Bluetooth.h>
-#include <HTTPControl.h>
 #include <MQTT.h>
-#include <SoftAPHandler.h>
 #include <GPIOHandler.h>
+#include <HTML_Handler.h>
 
 Settings settings;
 RGBLED rgbLED;
@@ -25,11 +24,10 @@ WiFiHandler wifiHandler;
 TCPServer tcpServer;
 Bluetooth bluetooth;
 MQTT mqtt;
-SoftAPHandler softAPHandler;
 GPIOHandler gpioHandler;
 
 //Handling for http control interface
-HTTPControl httpControl;
+HTMLHandler httpHandler;
 bool requestPending;
 AsyncWebServerRequest *pendingRequest;
 unsigned long requestSendTime;

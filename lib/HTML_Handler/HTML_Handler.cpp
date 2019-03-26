@@ -1,23 +1,51 @@
-#include <Arduino.h>
-#include <HTTPControl.h>
+#include <HTML_Handler.h>
 
-// #define DEBUG
-unsigned long commandReceiveTime = millis();
+#define WALLED_GARDEN
+#define DEBUG
 
 AsyncWebServer controlServer(80);
 AsyncWebSocket ws("/ws");
 AsyncEventSource events("/events");
+IPAddress apIP(172, 217, 28, 1);
 
-void HTTPControl::init(Settings &s){
+void HTMLHandler::init(Settings &s, bool sMode, WiFiHandler &wHandler){
   settings = &s;
-  controlServer.onNotFound(std::bind(&HTTPControl::onRequest, this, std::placeholders::_1));
-  ws.onEvent(std::bind(&HTTPControl::onEvent, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6));
+  setupMode = sMode;
+  wifiHandler = &wHandler;
+
+  if(setupMode){
+    WiFi.mode(WIFI_AP);
+    delay(200);
+    WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
+    #ifdef DEBUG
+    Serial.printf("AP SSID:%s\n",settings->apSSID);
+    Serial.printf("AP Pass:%s\n",settings->apPass);
+    #endif
+    WiFi.softAP(settings->apSSID, settings->apPass, 1, 0, 1);
+    #ifdef WALLED_GARDEN
+    dnsServer.setTTL(0);
+    dnsServer.start(DNS_PORT, "*", apIP);
+    #endif
+  }
+
+  ws.onEvent(std::bind(&HTMLHandler::onEvent, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6));
   controlServer.addHandler(&ws);
   controlServer.addHandler(&events);
+  controlServer.on("/update", std::bind(&HTMLHandler::configUpdate, this, std::placeholders::_1));
+  controlServer.onNotFound(std::bind(&HTMLHandler::onRequest, this, std::placeholders::_1));
   controlServer.begin();
+  #ifdef DEBUG
+  Serial.println("HTMLHandler initialized");
+  #endif
 }
 
-void HTTPControl::onRequest(AsyncWebServerRequest *request){
+void HTMLHandler::loop(){
+  if(setupMode){
+    dnsServer.processNextRequest();
+  }
+}
+
+void HTMLHandler::onRequest(AsyncWebServerRequest *request){
   #ifdef DEBUG
   Serial.println("New request to HTTPControl");
   Serial.printf("params: %i\n",request->params());
@@ -50,10 +78,12 @@ void HTTPControl::onRequest(AsyncWebServerRequest *request){
     }
     return;
   }
+
   if (request->url() == "/relayCount"){
     request->send(200, "text/plain", String(settings->relayCount));
     return;
   }
+
   if (request->url() == "/relayON"){
     if(request->hasArg("relay")){
       String relayString = request->arg("relay");
@@ -90,6 +120,7 @@ void HTTPControl::onRequest(AsyncWebServerRequest *request){
 
     return;
   }
+
   if (request->url() == "/relayOFF"){
     if(request->hasArg("relay")){
       String relayString = request->arg("relay");
@@ -126,10 +157,73 @@ void HTTPControl::onRequest(AsyncWebServerRequest *request){
 
     return;
   }
-  request->send(SPIFFS, "/Control.html");
+
+  if(request->url() == "/loadSettings"){
+    if(!setupMode){
+      // wifiHandler->scanNetworks();
+    }
+    #ifdef DEBUG
+    Serial.println("/loadSettings request");
+    #endif
+    request->send(200, "text/plain", settings->returnSettings("...","...",false));
+    return;
+  }
+
+  if(request->url() == "/factoryReset"){
+    request->send(200, "text/plain", "Resetting all settings, gateway will power cycle and will now be in setup mode");
+    if(settings->factoryReset()){
+      ESP.restart();
+    }
+    return;
+  }
+
+  if(request->url() == "/update"){
+    if(request->args() > 0 && request->hasArg("body")){
+      uint8_t zero = 0;
+      String requestString = request->arg(zero);
+      DynamicJsonBuffer requestjsonBuffer;
+      JsonObject& requestRoot = requestjsonBuffer.parseObject(requestString);
+      requestRoot["wifi_enabled"] = requestRoot.containsKey("wifi_enabled");
+      requestRoot["dhcp_enabled"] = requestRoot.containsKey("dhcp_enabled");
+      requestRoot["udp_broadcast_enabled"] = requestRoot.containsKey("udp_broadcast_enabled");
+      requestRoot["bluetooth_enabled"] = requestRoot.containsKey("bluetooth_enabled");
+      requestRoot["tcp_listener_enabled"] = requestRoot.containsKey("tcp_listener_enabled");
+      requestRoot["http_enabled"] = requestRoot.containsKey("http_enabled");
+      requestRoot["mqtt_enabled"] = requestRoot.containsKey("mqtt_enabled");
+      requestRoot["udp_remote_enabled"] = requestRoot.containsKey("udp_remote_enabled");
+      String finalFinal;
+      requestRoot.printTo(finalFinal);
+      if(!settings->storeSettings(finalFinal)){
+        #ifdef DEBUG
+        Serial.println("Failed to store settings");
+        #endif
+        request->send(201, "text/plain","Settings update failed");
+        return;
+      }else{
+        request->send(200, "text/plain","Settings updated");
+        delay(500);
+        ESP.restart();
+      }
+    }
+    return;;
+  }
+
+  if(request->url() == "/Config"){
+    request->send(SPIFFS, "/Config.html");
+    return;
+  }
+
+  if(request->url() == "/Control"){
+    if(settings->httpControlEnabled){
+      request->send(SPIFFS, "/Control.html");
+    }
+    return;
+  }
+
+  request->send(SPIFFS, settings->defaultHTML);
 }
 
-void HTTPControl::onEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len){
+void HTMLHandler::onEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len){
   if(type == WS_EVT_CONNECT){
     //client connected
     hasClient = true;
@@ -167,7 +261,7 @@ void HTTPControl::onEvent(AsyncWebSocket * server, AsyncWebSocketClient * client
   }
 }
 
-void HTTPControl::sendToClient(uint8_t* data, int dataLen){
+void HTMLHandler::sendToClient(uint8_t* data, int dataLen){
   if(!hasClient){
     return;
   }
@@ -185,15 +279,15 @@ void HTTPControl::sendToClient(uint8_t* data, int dataLen){
   connectedClient->text(clientString, sizeof(clientString));
 }
 
-void HTTPControl::registerHTTPDataCallback(void(*HTTPDataCallback)(uint8_t*data, int dataLen, AsyncWebServerRequest *request)){
+void HTMLHandler::registerHTTPDataCallback(void(*HTTPDataCallback)(uint8_t*data, int dataLen, AsyncWebServerRequest *request)){
   _httpDataCallback = HTTPDataCallback;
 }
 
-void HTTPControl::registerWSDataCallback(void(*WSDataCallback)(uint8_t*data, int dataLen)){
+void HTMLHandler::registerWSDataCallback(void(*WSDataCallback)(uint8_t*data, int dataLen)){
   _WSDataCallback = WSDataCallback;
 }
 
-void HTTPControl::wrapAPI(uint8_t* data, size_t dataLen, uint8_t* buffer){
+void HTMLHandler::wrapAPI(uint8_t* data, size_t dataLen, uint8_t* buffer){
   uint8_t packet[dataLen+3];
   packet[0] = 170;
   packet[1] = dataLen;
@@ -206,4 +300,48 @@ void HTTPControl::wrapAPI(uint8_t* data, size_t dataLen, uint8_t* buffer){
   packet[sizeof(packet)-1] = csByte;
   memcpy(buffer, packet, sizeof(packet));
   return;
+}
+
+void HTMLHandler::configUpdate(AsyncWebServerRequest *request){
+  #ifdef DEBUG
+  Serial.println("Running configUpdate");
+  Serial.printf("Args: %i\n",request->args());
+  Serial.printf("Params: %i\n",request->params());
+  #endif
+
+  if(request->args() > 0 && request->hasArg("body")){
+    #ifdef DEBUG
+    Serial.print("arg(0)");
+    #endif
+    uint8_t zero = 0;
+    String requestString = request->arg(zero);
+    #ifdef DEBUG
+    Serial.println(requestString);
+    #endif
+    delay(500);
+    DynamicJsonBuffer requestjsonBuffer;
+    JsonObject& requestRoot = requestjsonBuffer.parseObject(requestString);
+    requestRoot["wifi_enabled"] = requestRoot.containsKey("wifi_enabled");
+    requestRoot["dhcp_enabled"] = requestRoot.containsKey("dhcp_enabled");
+    requestRoot["udp_broadcast_enabled"] = requestRoot.containsKey("udp_broadcast_enabled");
+    requestRoot["bluetooth_enabled"] = requestRoot.containsKey("bluetooth_enabled");
+    requestRoot["tcp_listener_enabled"] = requestRoot.containsKey("tcp_listener_enabled");
+    requestRoot["http_enabled"] = requestRoot.containsKey("http_enabled");
+    requestRoot["mqtt_enabled"] = requestRoot.containsKey("mqtt_enabled");
+
+    String finalFinal;
+    requestRoot.printTo(finalFinal);
+
+    request->send(200, "text/plain", "Settings updated");
+    #ifdef DEBUG
+    Serial.println("Updating settings");
+    #endif
+    delay(500);
+    if(settings->storeSettings(finalFinal)){
+      ESP.restart();
+    }
+  }
+  else{
+    request->send(200, "text/plain", "Well that's no good.");
+  }
 }

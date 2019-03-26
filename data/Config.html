@@ -112,6 +112,9 @@
 					<label for="ap_password">Soft AP Password:</label>
 					<input type="text" name="ap_password" id="ap_password" />
 				</div>
+				<label>Default HTML Page</label><br>
+					<input type="radio" name="default_html" id="/Config.html" value="/Config.html">Configuration
+					<input type="radio" name="default_html" id="/Control.html" value="/Control.html">Control
 			</div>
 		</div>
 
@@ -305,6 +308,9 @@ document.addEventListener("DOMContentLoaded", function() {
 							case 'checkbox':
 							form[i].checked = form[i].value == v;
 							break;
+							case 'radio':
+							form[i].checked = form[i].value == v;
+							break;
 							default:
 							if(field.tagName == "SELECT"){
 								$('option[value="'+v+'"]', field).get(0).selected = "selected";
@@ -402,7 +408,16 @@ function postForm(form, cb){
 				}
 			}
 			break;
-			case 'select':
+			case 'radio':
+			if(el.checked){
+				var splitText = el.name.split('.');
+				if(splitText.length == 1){
+					formData[el.name] = el.value;
+				}else{
+					formData[splitText[0]] = {};
+					formData[splitText[0]][splitText[1]] = el.value;
+				}
+			}
 
 			break;
 			case 'password':

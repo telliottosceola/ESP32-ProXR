@@ -244,6 +244,8 @@ void Settings::setPublicVariables(JsonObject& settingsJSON){
   strcpy(mqttSubscribeTopic, settingsJSON["mqtt_subscribe_topic"]);
   memset(mqttPublishTopic, 0, 50);
   strcpy(mqttPublishTopic, settingsJSON["mqtt_publish_topic"]);
+  memset(defaultHTML, 0, 50);
+  strcpy(defaultHTML, settingsJSON["default_html"]);
   mqttPort = settingsJSON["mqtt_port"].as<int>();
   mqttEnabled = settingsJSON["mqtt_enabled"].as<bool>();
   relayCount = settingsJSON["relay_count"].as<int>();
