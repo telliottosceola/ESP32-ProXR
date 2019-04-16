@@ -224,6 +224,7 @@ void Settings::setPublicVariables(JsonObject& settingsJSON){
   memset(deviceID, 0, 33);
   strcpy(deviceID, settingsJSON["wifi_device_id"]);
   baudRate = settingsJSON["baud_rate"].as<int>();
+  usbBaudRate = settingsJSON["usb_baud_rate"].as<int>();
   tcpListenPort = settingsJSON["tcp_listen_port"].as<int>();
   dhcpEnabled = settingsJSON["dhcp_enabled"].as<bool>();
   wifiEnabled = settingsJSON["wifi_enabled"].as<bool>();
@@ -244,11 +245,8 @@ void Settings::setPublicVariables(JsonObject& settingsJSON){
   strcpy(mqttSubscribeTopic, settingsJSON["mqtt_subscribe_topic"]);
   memset(mqttPublishTopic, 0, 50);
   strcpy(mqttPublishTopic, settingsJSON["mqtt_publish_topic"]);
-  memset(defaultHTML, 0, 50);
-  strcpy(defaultHTML, settingsJSON["default_html"]);
   mqttPort = settingsJSON["mqtt_port"].as<int>();
   mqttEnabled = settingsJSON["mqtt_enabled"].as<bool>();
-  relayCount = settingsJSON["relay_count"].as<int>();
 
   JsonArray& staticIPArray = settingsJSON["static_ip"];
   for(int i = 0; i < 4; i++){

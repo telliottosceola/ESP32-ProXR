@@ -4,18 +4,16 @@
 // #define DEBUG
 
 void setup() {
-  Serial.begin(115200);
-
   if(!SPIFFS.begin(true)){
     #ifdef DEBUG
     Serial.println("SPIFFS Mount Failed");
     #endif
   }
   settings.loadSettings();
+  Serial.begin(settings.usbBaudRate);
 
 
-
-  rgbLED.init(2,21,13,COMMON_ANODE, false);
+  rgbLED.init(2,15,13,COMMON_ANODE, false);
   rgbLED.setMode(rgbLED.MODE_BOOT);
   rgbLED.loop();
   delay(1000);

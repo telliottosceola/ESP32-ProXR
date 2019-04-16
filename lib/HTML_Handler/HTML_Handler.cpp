@@ -1,7 +1,7 @@
 #include <HTML_Handler.h>
 
 #define WALLED_GARDEN
-#define DEBUG
+// #define DEBUG
 
 AsyncWebServer controlServer(80);
 AsyncWebSocket ws("/ws");
@@ -213,14 +213,7 @@ void HTMLHandler::onRequest(AsyncWebServerRequest *request){
     return;
   }
 
-  if(request->url() == "/Control"){
-    if(settings->httpControlEnabled){
-      request->send(SPIFFS, "/Control.html");
-    }
-    return;
-  }
-
-  request->send(SPIFFS, settings->defaultHTML);
+  request->send(SPIFFS, "/Config.html");
 }
 
 void HTMLHandler::onEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len){

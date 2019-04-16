@@ -39,6 +39,7 @@ public:
   IPAddress secondaryDNS;
   //Serial Settings
   int baudRate;
+  int usbBaudRate;
   //Bluetooth Settings
   char bluetoothPairing[50];
   char bluetoothName[50];
