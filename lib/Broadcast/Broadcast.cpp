@@ -33,6 +33,10 @@ void Broadcast::init(Settings &s){
   memcpy(broadcastPacket+110, macBytes, 6);
   uint8_t ipBuffer[4] = {moduleIP[0],moduleIP[1],moduleIP[2],moduleIP[3]};
   memcpy(broadcastPacket+116, ipBuffer, 4);
+
+  memset(ethernetBroadcastPacket, 0, 60);
+  sprintf(ethernetBroadcastPacket, ethernetBroadcastFormat, moduleIP[0], moduleIP[1], moduleIP[2], moduleIP[3], macBytes[0], macBytes[1], macBytes[2], macBytes[3], macBytes[4], macBytes[5], settings->tcpListenPort);
+
   ready = true;
 }
 
@@ -43,6 +47,11 @@ void Broadcast::loop(){
       udp.beginPacket(broadcastIP, broadcastPort);
       udp.write(broadcastPacket, 120);
       udp.endPacket();
+
+      udp.beginPacket(broadcastIP, ethernetBroadcastPort);
+      udp.write((uint8_t*)ethernetBroadcastPacket, 60);
+      udp.endPacket();
+
       if(settings->udpRemoteBroadcastEnabled){
         udp.beginPacket("link.signalswitch.com", broadcastPort);
         udp.write(broadcastPacket, 120);
