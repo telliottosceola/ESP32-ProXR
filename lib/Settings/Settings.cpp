@@ -185,10 +185,10 @@ bool Settings::factoryReset(){
   #ifdef DEBUG
   Serial.println("factoryReset Settings");
   #endif
-  int defaultSettingsLength = fileSystem.getFileSize(SPIFFS, "/settings_D.txt");
+  int defaultSettingsLength = fileSystem.getFileSize(SPIFFS, "/settings_d.txt");
   if(defaultSettingsLength != 0){
     char defaultSettingsFileBuffer[defaultSettingsLength+1];
-    if(fileSystem.readFile(SPIFFS, "/settings_D.txt", defaultSettingsFileBuffer, defaultSettingsLength)){
+    if(fileSystem.readFile(SPIFFS, "/settings_d.txt", defaultSettingsFileBuffer, defaultSettingsLength)){
       DynamicJsonBuffer jsonBuffer;
       JsonObject& defaultSettingsJSON = jsonBuffer.parseObject(String(defaultSettingsFileBuffer));
       if(defaultSettingsJSON.success()){
