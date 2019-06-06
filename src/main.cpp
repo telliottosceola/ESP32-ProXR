@@ -25,7 +25,7 @@ void setup() {
   httpHandler.registerWSDataCallback(wsDataCallback);
 
 
-  if(gpioHandler.checkCFGButton() || strcmp("blank",settings.wlanSSID) == 0 || strcmp("",settings.wlanSSID) == 0){
+  if(gpioHandler.checkCFGButton() || ((strcmp("blank",settings.wlanSSID) == 0 || strcmp("",settings.wlanSSID) == 0)&& settings.wifiEnabled)){
     gpioHandler.setupMode = true;
     #ifdef DEBUG
     Serial.println("Setup Mode");
@@ -111,6 +111,8 @@ void loop() {
       }else{
         rgbLED.setMode(rgbLED.MODE_WIFI_DISCONNECTED);
       }
+    }else{
+      rgbLED.setMode(rgbLED.MODE_ALL_CLEAR);
     }
   }
 }
