@@ -8,7 +8,7 @@ void WiFiHandler::init(Settings &s, RGBLED &r){
 }
 
 bool WiFiHandler::checkWiFi(bool setupMode){
-  if(strcmp(settings->wlanSSID, "blank") == 0 || strcmp(settings->wlanPASS, "blank") == 0){
+  if(strcmp(settings->wlanSSID, "blank") == 0){
     return false;
   }
   if(WiFi.isConnected()){
@@ -24,7 +24,12 @@ bool WiFiHandler::checkWiFi(bool setupMode){
     }
     unsigned long wifiConnectTimeout = 10000;
     unsigned long startConnectTime = millis();
-    WiFi.begin(settings->wlanSSID, settings->wlanPASS);
+    if(strcmp(settings->wlanPASS, "blank") == 0 || strlen(settings->wlanPASS) == 0){
+      WiFi.begin(settings->wlanSSID);
+    }else{
+      WiFi.begin(settings->wlanSSID, settings->wlanPASS);
+    }
+
     while(WiFi.status() != WL_CONNECTED && millis() < startConnectTime+wifiConnectTimeout){
       if(digitalRead(button) == 0){
         if(!setupMode){
