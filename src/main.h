@@ -15,9 +15,10 @@
 #include <MQTT.h>
 #include <GPIOHandler.h>
 #include <HTML_Handler.h>
+#include <Taralist.h>
 
-Settings settings;
 RGBLED rgbLED;
+Settings settings;
 Device device;
 Broadcast broadcast;
 WiFiHandler wifiHandler;
@@ -25,6 +26,7 @@ TCPServer tcpServer;
 Bluetooth bluetooth;
 MQTT mqtt;
 GPIOHandler gpioHandler;
+Taralist taralist;
 
 //Handling for http control interface
 HTMLHandler httpHandler;
@@ -42,3 +44,4 @@ void wsDataCallback(uint8_t* data, int dataLen);
 void mqttDataCallback(uint8_t* data, int dataLen);
 
 bool setupMode = false;
+bool taralistInitialized = false;

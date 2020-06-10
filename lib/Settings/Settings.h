@@ -55,6 +55,9 @@ public:
 
   char defaultHTML[50];
 
+  bool taralistEnabled = true;
+  int taralistTimeZone = 18;
+
 private:
   FileSystem fileSystem;
   String discoveredNetworks;

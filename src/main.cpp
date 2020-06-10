@@ -110,6 +110,14 @@ void loop() {
           rgbLED.setMode(rgbLED.MODE_ALL_CLEAR);
         }
 
+        if(settings.taralistEnabled){
+          if(!taralistInitialized){
+            taralist.init();
+          }else{
+            taralist.loop();
+          }
+        }
+
       }else{
         rgbLED.setMode(rgbLED.MODE_WIFI_DISCONNECTED);
       }
