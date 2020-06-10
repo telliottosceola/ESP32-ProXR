@@ -117,6 +117,8 @@ public:
   uint8_t MODE_ALL_CLEAR = 8;
   uint8_t MODE_CLIENT_CONNECTED = 9;
   uint8_t MODE_DATA_RECEIVED = 10;
+  uint8_t RANDOM = 11;
+  uint8_t MODE_BOOT_SETUP = 12;
 
 private:
 

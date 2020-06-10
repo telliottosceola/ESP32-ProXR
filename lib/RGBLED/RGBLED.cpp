@@ -380,8 +380,24 @@ void RGBLED::loop(){
 			writeRGB(0,255,0);
 			break;
 		}
-		case 10:
-		writeRGB(255,165,0);
-		break;
+		case 10:{
+			writeRGB(255,165,0);
+			break;
+		}
+		case 11:{
+			if(previousTime == 0){
+				writeRandom();
+				previousTime = millis();
+			}else{
+				if(millis() > previousTime+200){
+					previousTime = millis();
+					writeRandom();
+				}
+			}
+		}
+		case 12:{
+			writeRGB(0, 0, 255);
+			break;
+		}
 	}
 }
