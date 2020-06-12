@@ -7,6 +7,7 @@ public:
   void init(int baudRate, unsigned long cTimeout);
   void loop();
   void write(uint8_t* data, int dataLen);
+  bool write(uint8_t* data, int dataLen, uint8_t* returnBuffer, size_t returnBufferSize, unsigned long timeout);
   void registerDeviceDataCallback(void(*deviceDataCallback)(uint8_t*data, int dataLen));
 private:
   void (*_deviceDataCallback)(uint8_t*data, int dataLen);

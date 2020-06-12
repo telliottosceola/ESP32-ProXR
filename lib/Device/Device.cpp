@@ -125,6 +125,26 @@ void Device::write(uint8_t* data, int dataLen){
   }
 
 }
+
+bool Device::write(uint8_t* data, int dataLen, uint8_t* returnBuffer, size_t returnBufferSize, unsigned long timeout){
+  //Clear any data in the buffer
+  while(deviceSerial.available() != 0){
+    deviceSerial.read();
+  }
+  deviceSerial.write(data, dataLen);
+  unsigned long startTime = millis();
+  while(deviceSerial.available() < returnBufferSize && millis() < startTime+timeout);
+  if(deviceSerial.available() < returnBufferSize){
+    //We did not get the expected bytes back so clear the buffer and return false
+    while(deviceSerial.available() != 0){
+      deviceSerial.read();
+    }
+    return false;
+  }
+  deviceSerial.readBytes(returnBuffer, returnBufferSize);
+  return true;
+}
+
 void Device::registerDeviceDataCallback(void(*deviceDataCallback)(uint8_t*data, int dataLen)){
   _deviceDataCallback = deviceDataCallback;
 }

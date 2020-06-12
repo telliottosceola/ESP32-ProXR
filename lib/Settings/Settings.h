@@ -56,7 +56,7 @@ public:
   char defaultHTML[50];
 
   bool taralistEnabled = true;
-  int taralistTimeZone = 18;
+  long taralistTimeZone = -6;
 
 private:
   FileSystem fileSystem;
