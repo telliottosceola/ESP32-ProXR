@@ -112,7 +112,7 @@ void loop() {
 
         if(settings.taralistEnabled){
           if(!taralistInitialized){
-            taralist.init();
+            taralist.init(10000, -6);
           }else{
             taralist.loop();
           }
