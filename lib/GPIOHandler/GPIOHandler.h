@@ -9,6 +9,7 @@ public:
   void loop();
   bool checkCFGButton();
   bool setupMode;
+  void registerButtonPressCallback(void(*cfgButtonCallBack)(unsigned long duration));
 
 private:
   Settings* settings;
@@ -20,5 +21,8 @@ private:
   unsigned long factoryResetTimeout = 5000;
   bool factoryResetEnable = false;
   bool previousButtonState;
+  int presses = 0;
+
+  void (*_cfgButtonCallBack)(unsigned long duration);
 };
 #endif

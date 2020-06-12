@@ -16,7 +16,7 @@ void RGBLED::init(int rPin, int gPin, int bPin, common_type type, bool buzzerEna
 	ledcSetup(3, 12000, 8);
 	turnOff();
 	pinMode(buzzer, OUTPUT);
-	digitalWrite(buzzer, HIGH);
+	digitalWrite(buzzer, LOW);
 	_buzzerEnabled = buzzerEnabled;
 }
 
@@ -149,10 +149,11 @@ void RGBLED::setMode(uint8_t MODE){
 	if(_MODE == MODE){
 		return;
 	}
-	digitalWrite(buzzer,HIGH);
+	digitalWrite(buzzer,LOW);
 	_MODE=MODE;
 	previousTime = 0;
 	flashIndex = 0;
+	// Serial.printf("RGB LED Mode Set to %i\n", MODE);
 }
 
 void RGBLED::setSignalStrength(uint8_t signalStrength){
@@ -162,7 +163,26 @@ void RGBLED::setSignalStrength(uint8_t signalStrength){
 
 }
 
+void RGBLED::momentary(int red, int green, int blue, unsigned long duration){
+	writeRed(red);
+	writeBlue(blue);
+	writeGreen(green);
+	momentaryDuration = duration;
+	momentaryStartTime = millis();
+}
+
 void RGBLED::loop(){
+
+	if(momentaryDuration != 0){
+		if(millis() >= momentaryStartTime+momentaryDuration){
+			momentaryDuration = 0;
+			writeRed(0);
+			writeBlue(0);
+			writeGreen(0);
+		}else{
+			return;
+		}
+	}
 
 	if(dataReceivedLED && millis() < dataReceivedTime+minimumFlashTime){
 		return;
@@ -176,7 +196,7 @@ void RGBLED::loop(){
 				if(MODE_ERROR_MQTT_INDEX_STATE[flashIndex] == 0){
 					turnOff();
 					if(_buzzerEnabled){
-						digitalWrite(buzzer, HIGH);
+						digitalWrite(buzzer, LOW);
 					}
 				}else{
 					writeRGB(MODE_ERROR_MQTT_COLOR[0], MODE_ERROR_MQTT_COLOR[1], MODE_ERROR_MQTT_COLOR[2]);
@@ -193,7 +213,7 @@ void RGBLED::loop(){
 					if(MODE_ERROR_MQTT_INDEX_STATE[flashIndex] == 0){
 						turnOff();
 						if(_buzzerEnabled){
-							digitalWrite(buzzer, HIGH);
+							digitalWrite(buzzer, LOW);
 						}
 					}else{
 						writeRGB(MODE_ERROR_MQTT_COLOR[0], MODE_ERROR_MQTT_COLOR[1], MODE_ERROR_MQTT_COLOR[2]);
@@ -210,7 +230,7 @@ void RGBLED::loop(){
 				if(MODE_ERROR_I2C_INDEX_STATE[flashIndex] == 0){
 					turnOff();
 					if(_buzzerEnabled){
-						digitalWrite(buzzer, HIGH);
+						digitalWrite(buzzer, LOW);
 					}
 				}else{
 					writeRGB(MODE_ERROR_I2C_COLOR[0], MODE_ERROR_I2C_COLOR[1], MODE_ERROR_I2C_COLOR[2]);
@@ -226,7 +246,7 @@ void RGBLED::loop(){
 					if(MODE_ERROR_I2C_INDEX_STATE[flashIndex] == 0){
 						turnOff();
 						if(_buzzerEnabled){
-							digitalWrite(buzzer, HIGH);
+							digitalWrite(buzzer, LOW);
 						}
 					}else{
 						writeRGB(MODE_ERROR_I2C_COLOR[0], MODE_ERROR_I2C_COLOR[1], MODE_ERROR_I2C_COLOR[2]);
@@ -243,7 +263,7 @@ void RGBLED::loop(){
 				if(MODE_ERROR_COMMS_INDEX_STATE[flashIndex] == 0){
 					turnOff();
 					if(_buzzerEnabled){
-						digitalWrite(buzzer, HIGH);
+						digitalWrite(buzzer, LOW);
 					}
 				}else{
 					writeRGB(MODE_ERROR_COMMS_COLOR[0], MODE_ERROR_COMMS_COLOR[1], MODE_ERROR_COMMS_COLOR[2]);
@@ -259,7 +279,7 @@ void RGBLED::loop(){
 					if(MODE_ERROR_COMMS_INDEX_STATE[flashIndex] == 0){
 						turnOff();
 						if(_buzzerEnabled){
-							digitalWrite(buzzer, HIGH);
+							digitalWrite(buzzer, LOW);
 						}
 					}else{
 						writeRGB(MODE_ERROR_COMMS_COLOR[0], MODE_ERROR_COMMS_COLOR[1], MODE_ERROR_COMMS_COLOR[2]);
@@ -380,8 +400,23 @@ void RGBLED::loop(){
 			writeRGB(0,255,0);
 			break;
 		}
-		case 10:
-		writeRGB(255,165,0);
-		break;
+		case 10:{
+			writeRGB(255,165,0);
+			break;
+		}
+		case 11:{
+			if(previousTime == 0){
+				writeRandom();
+				previousTime = millis();
+			}else{
+				if(millis() > previousTime+200){
+					previousTime = millis();
+					writeRandom();
+				}
+			}
+		}
+		case 12:{
+			writeRGB(0, 0, 0);
+		}
 	}
 }
