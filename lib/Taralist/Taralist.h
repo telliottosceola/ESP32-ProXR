@@ -8,7 +8,7 @@
 
 class Taralist{
 public:
-  void init(unsigned long updateInterval, long timeZone);
+  void init(unsigned long updateInterval, long timeZone, long dstOffset);
   void loop();
   void manualSync();
   void registerTaralistCallback(void(*taralistCallback)(uint8_t*data, int dataLen));
@@ -16,7 +16,6 @@ public:
   bool initialized = false;
 
   long  gmtOffset_sec = -21600;
-  const int daylightOffset_sec = 3600;
 
   uint8_t enterConfigMode[8] = {170, 5, 254, 33, 140, 86, 120, 40};
   uint8_t exitConfigMode[8] = {170, 5, 254, 33, 140, 86, 0, 176};

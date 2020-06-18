@@ -13,19 +13,20 @@ void setup() {
   }
   settings.loadSettings();
 
-
-
   rgbLED.init(2,21,13,COMMON_ANODE, false);
   rgbLED.setMode(rgbLED.MODE_BOOT);
   rgbLED.loop();
-  delay(1000);
+  // delay(1000);
   wifiHandler.init(settings, rgbLED);
   wifiHandler.scanNetworks();
+
+  gpioHandler.registerButtonPressCallback(buttonPressCallback);
   gpioHandler.init(settings, rgbLED);
 
   httpHandler.registerHTTPDataCallback(httpDataCallback);
   httpHandler.registerWSDataCallback(wsDataCallback);
 
+  taralist.registerTaralistCallback(taralistCallback);
 
   if(gpioHandler.checkCFGButton() || strcmp("blank",settings.wlanSSID) == 0 || strcmp("",settings.wlanSSID) == 0){
     gpioHandler.setupMode = true;
@@ -64,11 +65,10 @@ void setup() {
       }
     }
   }
+  xTaskCreatePinnedToCore(backgroundTasks, "BackGround Tasks", 20000, NULL, 1, &backgroundTask, 1);
 }
 
 void loop() {
-  gpioHandler.loop();
-  rgbLED.loop();
 
   if(setupMode){
     httpHandler.loop();
@@ -105,21 +105,22 @@ void loop() {
         }
 
         if(tcpServer.clientConnected || bluetooth.deviceConnected){
-          rgbLED.setMode(rgbLED.MODE_CLIENT_CONNECTED);
+          if(!setupMode)rgbLED.setMode(rgbLED.MODE_CLIENT_CONNECTED);
         }else{
-          rgbLED.setMode(rgbLED.MODE_ALL_CLEAR);
+          if(!setupMode)rgbLED.setMode(rgbLED.MODE_ALL_CLEAR);
         }
 
         if(settings.taralistEnabled){
           if(!taralistInitialized){
-            taralist.init(10000, -6);
+            taralist.init(10000, settings.taralistTimeZone, (settings.taralistDST)?3600:0);
+            taralistInitialized = true;
           }else{
             taralist.loop();
           }
         }
 
       }else{
-        rgbLED.setMode(rgbLED.MODE_WIFI_DISCONNECTED);
+        if(!setupMode)rgbLED.setMode(rgbLED.MODE_WIFI_DISCONNECTED);
       }
     }
   }
@@ -187,4 +188,58 @@ void wsDataCallback(uint8_t* data, int dataLen){
 void mqttDataCallback(uint8_t* data, int dataLen){
   rgbLED.setMode(rgbLED.MODE_DATA_RECEIVED);
   device.write(data, dataLen);
+}
+
+void taralistCallback(uint8_t*data, int dataLen){
+  // Serial.print("Taralist updating with command: ");
+  // for(int i = 0; i < dataLen; i++){
+  //   Serial.printf("%i ", data[i]);
+  // }
+  // Serial.println();
+  uint8_t returnBuffer[4];
+  if(device.write(taralist.enterConfigMode, sizeof(taralist.enterConfigMode), returnBuffer, sizeof(returnBuffer), 50)){
+    if(device.write(data, dataLen, returnBuffer, sizeof(returnBuffer), 50)){
+      device.write(taralist.exitConfigMode, sizeof(taralist.exitConfigMode), returnBuffer, sizeof(returnBuffer), 50);
+    }
+  }
+}
+
+void buttonPressCallback(unsigned long duration){
+  if(duration > 50){
+    #ifdef DEBUG
+    Serial.printf("Button pressed for %ims\n",(int)duration);
+    #endif
+  }
+  if(!setupMode){
+    setupMode = true;
+    rgbLED.setMode(rgbLED.MODE_SETUP);
+    ESP.restart();
+    return;
+  }else{
+    if(duration <= 4000){
+      setupMode = false;
+      // httpHandler.stop();
+      rgbLED.setMode(rgbLED.MODE_BOOT);
+    }else{
+      rgbLED.setMode(rgbLED.RANDOM);
+      unsigned long start = millis();
+      while(millis() < start+2000){
+        rgbLED.loop();
+      }
+      settings.factoryReset();
+      // httpHandler.stop();
+      setupMode = false;
+      rgbLED.setMode(rgbLED.MODE_SETUP);
+    }
+  }
+
+}
+
+void backgroundTasks(void* pvParameters){
+  for(;;){
+    rgbLED.loop();
+    gpioHandler.loop();
+    vTaskDelay(10);
+  }
+  vTaskDelete( NULL );
 }

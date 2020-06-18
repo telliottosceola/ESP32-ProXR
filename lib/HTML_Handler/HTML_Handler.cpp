@@ -1,7 +1,7 @@
 #include <HTML_Handler.h>
 
 #define WALLED_GARDEN
-#define DEBUG
+// #define DEBUG
 
 AsyncWebServer controlServer(80);
 AsyncWebSocket ws("/ws");
@@ -31,7 +31,7 @@ void HTMLHandler::init(Settings &s, bool sMode, WiFiHandler &wHandler){
   ws.onEvent(std::bind(&HTMLHandler::onEvent, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6));
   controlServer.addHandler(&ws);
   controlServer.addHandler(&events);
-  controlServer.on("/update", std::bind(&HTMLHandler::configUpdate, this, std::placeholders::_1));
+  // controlServer.on("/update", std::bind(&HTMLHandler::configUpdate, this, std::placeholders::_1));
   controlServer.onNotFound(std::bind(&HTMLHandler::onRequest, this, std::placeholders::_1));
   controlServer.begin();
   #ifdef DEBUG
@@ -191,8 +191,12 @@ void HTMLHandler::onRequest(AsyncWebServerRequest *request){
       requestRoot["http_enabled"] = requestRoot.containsKey("http_enabled");
       requestRoot["mqtt_enabled"] = requestRoot.containsKey("mqtt_enabled");
       requestRoot["udp_remote_enabled"] = requestRoot.containsKey("udp_remote_enabled");
+      requestRoot["taralist_enabled"] = requestRoot.containsKey("taralist_enabled");
+      requestRoot["taralist_dst_enabled"] = requestRoot.containsKey("taralist_dst_enabled");
       String finalFinal;
       requestRoot.printTo(finalFinal);
+      Serial.print("Storing: ");
+      Serial.println(finalFinal);
       if(!settings->storeSettings(finalFinal)){
         #ifdef DEBUG
         Serial.println("Failed to store settings");
@@ -219,11 +223,18 @@ void HTMLHandler::onRequest(AsyncWebServerRequest *request){
     }
     return;
   }
+  if(request->url() == "/Taralist"){
+    if(settings->httpControlEnabled){
+      request->send(SPIFFS, "/Taralist.html");
+    }
+    return;
+  }
 
   request->send(SPIFFS, settings->defaultHTML);
 }
 
 void HTMLHandler::onEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len){
+
   if(type == WS_EVT_CONNECT){
     //client connected
     hasClient = true;
@@ -252,6 +263,11 @@ void HTMLHandler::onEvent(AsyncWebSocket * server, AsyncWebSocketClient * client
             wrapAPI(commandBytes, sizeof(commandBytes), apiPacket);
             _WSDataCallback(apiPacket, sizeof(apiPacket));
           }else{
+            if(commandBytes[0] == 171 && commandBytes[1] == 2){
+              timeRequestPending = true;
+              // Serial.println("This is a time request");
+              // delay(20);
+            }
             _WSDataCallback(commandBytes, sizeof(commandBytes));
           }
         }
@@ -261,22 +277,76 @@ void HTMLHandler::onEvent(AsyncWebSocket * server, AsyncWebSocketClient * client
   }
 }
 
+int convertBCDByte(uint8_t byte){
+  uint8_t a = (uint8_t)(floor(byte/16));//5
+  uint8_t b = (uint8_t)(byte%16);//3
+  return a*10+b;
+}
+
+void convertBCD(uint8_t* data, int dataLen, char* buffer){
+  char* timeFormat = "Date %i/%i/%i Time %i:%i:%i";
+  sprintf(buffer, timeFormat, convertBCDByte(data[7]),convertBCDByte(data[6]),convertBCDByte(data[9])+2000,convertBCDByte(data[5]),convertBCDByte(data[4]),convertBCDByte(data[3]));
+  // Serial.print("convertBCD called with data: ");
+  // for(int i = 0; i < dataLen; i++){
+  //   Serial.printf("%i ", data[i]);
+  // }
+  // Serial.printf("Taralist Time: %s\n",buffer);
+  return;
+}
+
 void HTMLHandler::sendToClient(uint8_t* data, int dataLen){
+
   if(!hasClient){
     return;
   }
   if(connectedClient->status() != WS_CONNECTED){
     return;
   }
+  if(data[0] == 171 && data[1] == 2 && timeRequestPending){
+    timeRequestPending = false;
+    // Serial.println("Sending time request response");
+    // delay(20);
 
-  DynamicJsonBuffer jsonBuffer;
-  JsonArray& dataArray = jsonBuffer.createArray();
-  for(int i = 0; i < dataLen; i++){
-    dataArray.add(data[i]);
+    DynamicJsonBuffer jsonBuffer;
+    JsonObject& root = jsonBuffer.createObject();
+
+    struct tm timeinfo;
+    if(getLocalTime(&timeinfo)){
+      // Serial.println("Got Local Time");
+      // delay(20);
+      char* timeFormat = "Date %i/%i/%i Time %i:%i:%i";
+      char ntpTimeDate[30];
+      sprintf(ntpTimeDate, timeFormat, timeinfo.tm_mon+1, timeinfo.tm_mday, timeinfo.tm_year+1900, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
+      root["ntp_time"] = ntpTimeDate;
+    }else{
+      root["ntp_time"] = "Could not Connect to NTP Server";
+    }
+    // Serial.println("Converting BCD Time");
+    // delay(20);
+    char timeDate[30];
+    convertBCD(data, dataLen, timeDate);
+    root["taralist_time"] = timeDate;
+    // root.printTo(Serial);
+    // Serial.println();
+    // delay(20);
+
+    String clientString;
+    root.printTo(clientString);
+    // Serial.print("Sending Response: ");
+    // Serial.println(clientString);
+    // delay(20);
+    connectedClient->text(clientString);
+
+  }else{
+    DynamicJsonBuffer jsonBuffer;
+    JsonArray& dataArray = jsonBuffer.createArray();
+    for(int i = 0; i < dataLen; i++){
+      dataArray.add(data[i]);
+    }
+    char clientString[dataArray.measureLength()+1];
+    dataArray.printTo(clientString, sizeof(clientString));
+    connectedClient->text(clientString, sizeof(clientString));
   }
-  char clientString[dataArray.measureLength()+1];
-  dataArray.printTo(clientString, sizeof(clientString));
-  connectedClient->text(clientString, sizeof(clientString));
 }
 
 void HTMLHandler::registerHTTPDataCallback(void(*HTTPDataCallback)(uint8_t*data, int dataLen, AsyncWebServerRequest *request)){
@@ -328,6 +398,8 @@ void HTMLHandler::configUpdate(AsyncWebServerRequest *request){
     requestRoot["tcp_listener_enabled"] = requestRoot.containsKey("tcp_listener_enabled");
     requestRoot["http_enabled"] = requestRoot.containsKey("http_enabled");
     requestRoot["mqtt_enabled"] = requestRoot.containsKey("mqtt_enabled");
+    // requestRoot["taralist_utc_offset"] = requestRoot.containsKey("taralist_utc_offset");
+    requestRoot["taralist_dst_enabled"] = requestRoot.containsKey("taralist_dst_enabled");
 
     String finalFinal;
     requestRoot.printTo(finalFinal);

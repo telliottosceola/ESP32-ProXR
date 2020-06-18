@@ -2,22 +2,20 @@
 
 // #define DEBUG
 
-void Taralist::init(unsigned long updateInterval, long timeZone){
+void Taralist::init(unsigned long updateInterval, long timeZone, long dstOffset){
   _updateInterval = updateInterval;
   if(WiFi.isConnected()){
     #ifdef DEBUG
     Serial.println("Taralist Init ran");
     #endif
     gmtOffset_sec = timeZone *3600;
-    configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+    configTime(gmtOffset_sec, dstOffset, ntpServer);
   }
 }
 
 void Taralist::loop(){
   if(WiFi.isConnected()){
     if(millis() > lastUpdate+_updateInterval || _updateInterval == 0){
-      Serial.println("Syncing with NTP server");
-      delay(20);
       struct tm timeinfo;
       if(!getLocalTime(&timeinfo)){
         #ifdef DEBUG

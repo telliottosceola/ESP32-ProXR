@@ -250,6 +250,10 @@ void Settings::setPublicVariables(JsonObject& settingsJSON){
   mqttEnabled = settingsJSON["mqtt_enabled"].as<bool>();
   relayCount = settingsJSON["relay_count"].as<int>();
 
+  taralistEnabled = settingsJSON["taralist_enabled"].as<bool>();
+  taralistTimeZone = settingsJSON["taralist_utc_offset"].as<int>();
+  taralistDST = settingsJSON["taralist_dst_enabled"].as<bool>();
+
   JsonArray& staticIPArray = settingsJSON["static_ip"];
   for(int i = 0; i < 4; i++){
     staticIP[i] = staticIPArray[i].as<int>();

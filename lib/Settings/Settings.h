@@ -57,6 +57,7 @@ public:
 
   bool taralistEnabled = true;
   long taralistTimeZone = -6;
+  bool taralistDST = false;
 
 private:
   FileSystem fileSystem;

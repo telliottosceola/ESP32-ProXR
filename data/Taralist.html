@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+	<style>
+	.accordion {
+		background-color: #eee;
+		color: #444;
+		cursor: pointer;
+		padding: 18px;
+		width: 100%;
+		border: none;
+		text-align: left;
+		outline: none;
+		font-size: 15px;
+		transition: 0.4s;
+		display: inline-block;
+		z-index: 1;
+	}
+
+	.active, .accordion:hover {
+		background-color: #ccc;
+	}
+
+	.panel {
+		padding: 0 18px;
+		background-color: white;
+		max-height: 0;
+		/* overflow: hidden; */
+		margin-bottom: 10;
+		z-index: 1;
+		/* transition: max-height 0.2s ease-out; */
+	}
+
+	.sticky{
+		background-color: #333;
+		color: white;
+		cursor: pointer;
+		padding: 18px;
+		width: 100%;
+		border: none;
+		outline: none;
+		font-size: 15px;
+		text-align: center;
+		position: fixed;
+		bottom: 0;
+		left:0;
+		display: inline-block;
+		z-index: 1;
+	}
+	.main{
+		overflow-y: scroll;
+		padding-bottom: 50px;
+	}
+		/* height: 1500px; /* Used in this example to enable scrolling */ */
+}
+</style>
+<title>Taralist</title>
+</head>
+<form action="/update" data-settings-path="/loadSettings" method="post" enctype="application/x-www-form-urlencoded">
+	<div class="main">
+		<div class="panel">
+			<div class="form-group">
+				<div class="form-item">
+					<label for="ntp_time">NTP Time:</label>
+					<label name="ntp_time" id="ntp_time" value="...">...</label><br>
+				</div>
+        <div class="form-item">
+					<label for="taralist_time">Taralist Time:</label>
+					<label name="taralist_time" id="taralist_time">...</label><br>
+				</div>
+			</div>
+		</div>
+	</div>
+
+<script>
+class miniQ{
+	constructor(s, c){
+		this._els = [];
+		this.selector = s;
+		this.context = c ? c : document;
+		this._els = this.context.querySelectorAll(s);
+	}
+	each(cb){
+		this._els.forEach((el, i) => {
+			cb.call(el, i);
+		});
+		return this;
+	}
+	get(i){
+		if(!this._els.length || this._els.length <= i) return false;
+		return this._els[i];
+	}
+	on(ev, cb){
+		this._els.forEach((el) => {
+			el.addEventListener(ev, (ev) => {
+				var res = cb.call(el, ev);
+				if(res === false) ev.preventDefault();
+			});
+		});
+	}
+}
+var $ = function(s, c){
+	return new miniQ(s,c);
+};
+
+function getTime(){
+  controllerWebSocket.send("[171,2,2,65,99,83]");
+  bankStatusCommand = true;
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+  var ip = location.host;
+  controllerWebSocket = new WebSocket("ws://"+ip+"/ws");
+  controllerWebSocket.onopen = function() {
+    (function wrap(){
+			getTime();
+      setTimeout( wrap, 1000 );
+    })();
+  };
+
+  controllerWebSocket.onmessage = function(event){
+
+    // console.log(event.data);
+    var message = event.data.toString();
+    if(typeof messsage === String){
+      console.log("data is a String");
+    }else{
+      console.log("whelp, it's not a string...");
+    }
+    console.log(message);
+    var data = JSON.parse(message);
+    console.log(data);
+    for(var i in data){
+      console.log("i is: "+i);
+      if(document.getElementById(i) == 'undefined'){
+        console.log("could not find element");
+      }else{
+        document.getElementById(i).innerHTML = data[i];
+      }
+    }
+  }
+});
+</script>
+</form>
+</html>

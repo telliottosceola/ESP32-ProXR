@@ -7,6 +7,7 @@
 #include <DNSServer.h>
 #include <WiFi.h>
 #include <WiFiHandler.h>
+#include <Math.h>
 class HTMLHandler{
 public:
   void init(Settings &s, bool sMode, WiFiHandler &wHandler);
@@ -24,6 +25,7 @@ private:
   unsigned long commandReceiveTime = millis();
   const byte DNS_PORT = 53;
   DNSServer dnsServer;
+  bool timeRequestPending = false;
 
   Settings *settings;
   WiFiHandler *wifiHandler;
