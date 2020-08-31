@@ -42,3 +42,11 @@ void wsDataCallback(uint8_t* data, int dataLen);
 void mqttDataCallback(uint8_t* data, int dataLen);
 
 bool setupMode = false;
+
+bool externalTTLEnable = false;
+int externalTTL = 33;
+bool flash = false;
+unsigned long flashDuration = 5000;
+unsigned long flashStartTime;
+unsigned long lastPulse;
+unsigned long pulseDuration = 100;

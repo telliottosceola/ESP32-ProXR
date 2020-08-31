@@ -62,11 +62,27 @@ void setup() {
       }
     }
   }
+  if(externalTTLEnable){
+    pinMode(externalTTL, OUTPUT);
+    digitalWrite(externalTTL, LOW);
+  }
 }
 
 void loop() {
   gpioHandler.loop();
   rgbLED.loop();
+
+  if(externalTTLEnable && flash){
+    if(millis() > flashStartTime + flashDuration){
+      flash = false;
+      digitalWrite(externalTTL, LOW);
+    }else{
+      if(millis() > lastPulse+pulseDuration){
+        digitalWrite(externalTTL, !digitalRead(externalTTL));
+        lastPulse = millis();
+      }
+    }
+  }
 
   if(setupMode){
     httpHandler.loop();
@@ -125,6 +141,13 @@ void deviceDataCallback(uint8_t* data, int dataLen){
   }
   Serial.println();
   #endif
+  if(externalTTLEnable){
+    flash = true;
+    flashStartTime = millis();
+    lastPulse = millis();
+    digitalWrite(externalTTL, HIGH);
+  }
+
   if(Serial.availableForWrite()){
     Serial.write(data, dataLen);
   }
