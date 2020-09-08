@@ -196,6 +196,29 @@
 			</div>
 		</div>
 
+		<button class="accordion" type="button">TCP Client</button>
+		<div class="panel">
+			<div class="form-group">
+				<div class="form-item">
+					<label for="remote_enabled">TCP Client Enabled:</label>
+					<input type="checkbox" name="remote_enabled" value="1"/><br>
+				</div>
+				<div class="form-item">
+					<label for="remote_host_port">Remote Host Port:</label>
+					<input type="text" name="remote_host_port" id="remote_host_port" />
+				</div>
+				<div class="form-item">
+					<label for="remote_host_url">Remote Host URL:</label>
+					<input type="text" name="remote_host_url" id="remote_host_url" />
+				</div>
+				<p>Or</p>
+				<div class="form-item">
+					<label for="remote_host_ip">Remote Host IP:</label>
+					<input class="ip" type="text" name="remote_host_ip" id="remote_host_ip" />
+				</div>
+			</div>
+		</div>
+
 		<button class="accordion" type="button">HTTP Control</button>
 		<div class="panel">
 			<div class="form-group">

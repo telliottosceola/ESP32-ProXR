@@ -17,8 +17,6 @@ void setup() {
   rgbLED.setMode(rgbLED.MODE_BOOT);
   rgbLED.loop();
   // delay(1000);
-  wifiHandler.init(settings, rgbLED);
-  wifiHandler.scanNetworks();
 
   gpioHandler.registerButtonPressCallback(buttonPressCallback);
   gpioHandler.init(settings, rgbLED);
@@ -27,6 +25,11 @@ void setup() {
   httpHandler.registerWSDataCallback(wsDataCallback);
 
   taralist.registerTaralistCallback(taralistCallback);
+
+  xTaskCreatePinnedToCore(backgroundTasks, "BackGround Tasks", 20000, NULL, 1, &backgroundTask, 1);
+
+  wifiHandler.init(settings, rgbLED);
+  wifiHandler.scanNetworks();
 
   if(gpioHandler.checkCFGButton() || strcmp("blank",settings.wlanSSID) == 0 || strcmp("",settings.wlanSSID) == 0){
     gpioHandler.setupMode = true;
@@ -57,6 +60,10 @@ void setup() {
           tcpServer.registerTCPDataCallback(tcpDataCallback);
           tcpServer.init(settings);
         }
+        if(settings.tcpClientEnabled){
+          tcpClient.registerTCPClientDataCallback(tcpClientDataCallback);
+          tcpClient.init(settings);
+        }
       }
       httpHandler.init(settings, false, wifiHandler);
       if(settings.mqttEnabled){
@@ -65,10 +72,31 @@ void setup() {
       }
     }
   }
-  xTaskCreatePinnedToCore(backgroundTasks, "BackGround Tasks", 20000, NULL, 1, &backgroundTask, 1);
 }
 
 void loop() {
+
+  if(previousSetupMode != setupMode){
+    previousSetupMode = setupMode;
+    #ifdef DEBUG
+    Serial.printf("SetupMode: %s\n",setupMode?"True":"False");
+    #endif
+    if(setupMode){
+      if(WiFi.status() == WL_CONNECTED){
+        #ifdef DEBUG
+        Serial.println("Disconnecting WiFi");
+        #endif
+        WiFi.disconnect();
+        while(WiFi.status() == WL_CONNECTED);
+        #ifdef DEBUG
+        Serial.println("Disconnected");
+        #endif
+      }
+      rgbLED.setMode(rgbLED.MODE_SETUP);
+      delay(1000);
+      httpHandler.init(settings, true, wifiHandler);
+    }
+  }
 
   if(setupMode){
     httpHandler.loop();
@@ -80,7 +108,7 @@ void loop() {
       bluetooth.loop();
     }
 
-    if(settings.wifiEnabled){
+    if(settings.wifiEnabled && strcmp("blank",settings.wlanSSID) != 0 && strcmp("",settings.wlanSSID) != 0){
       if(wifiHandler.checkWiFi(setupMode)){
         //WiFi is connected
         if(settings.udpBroadcastEnabled && !broadcast.ready){
@@ -122,6 +150,8 @@ void loop() {
       }else{
         if(!setupMode)rgbLED.setMode(rgbLED.MODE_WIFI_DISCONNECTED);
       }
+    }else{
+      rgbLED.setMode(rgbLED.MODE_ALL_CLEAR);
     }
   }
 }
@@ -139,6 +169,9 @@ void deviceDataCallback(uint8_t* data, int dataLen){
   }
   if(settings.wifiEnabled && settings.tcpListenerEnabled && tcpServer.ready && tcpServer.clientConnected){
     tcpServer.sendData(data, dataLen);
+  }
+  if(settings.wifiEnabled && settings.tcpClientEnabled && tcpClient.ready){
+    tcpClient.sendData(data, dataLen);
   }
   if(settings.bluetoothEnabled && bluetooth.deviceConnected){
     bluetooth.sendData(data, dataLen);
@@ -163,6 +196,11 @@ void deviceDataCallback(uint8_t* data, int dataLen){
 }
 
 void tcpDataCallback(uint8_t* data, int dataLen){
+  rgbLED.setMode(rgbLED.MODE_DATA_RECEIVED);
+  device.write(data, dataLen);
+}
+
+void tcpClientDataCallback(uint8_t* data, size_t dataLen){
   rgbLED.setMode(rgbLED.MODE_DATA_RECEIVED);
   device.write(data, dataLen);
 }
@@ -213,7 +251,7 @@ void buttonPressCallback(unsigned long duration){
   if(!setupMode){
     setupMode = true;
     rgbLED.setMode(rgbLED.MODE_SETUP);
-    ESP.restart();
+    // ESP.restart();
     return;
   }else{
     if(duration <= 4000){
@@ -229,7 +267,7 @@ void buttonPressCallback(unsigned long duration){
       settings.factoryReset();
       // httpHandler.stop();
       setupMode = false;
-      rgbLED.setMode(rgbLED.MODE_SETUP);
+      ESP.restart();
     }
   }
 

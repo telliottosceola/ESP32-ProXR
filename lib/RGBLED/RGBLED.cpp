@@ -77,7 +77,7 @@ void RGBLED::writeHSV(int h, double s, double v) {
   double g=0;
   double b=0;
 
-  double hf=h/60.0;
+  // double hf=h/60.0;
 
   int i=(int)floor(h/60.0);
   double f = h/60.0 - i;
@@ -414,6 +414,7 @@ void RGBLED::loop(){
 					writeRandom();
 				}
 			}
+			break;
 		}
 		case 12:{
 			writeRGB(0, 0, 0);

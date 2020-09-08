@@ -22,6 +22,7 @@ public:
   bool udpBroadcastEnabled;
   bool udpRemoteBroadcastEnabled;
   bool tcpListenerEnabled;
+  bool tcpClientEnabled;
 
   char wlanSSID[50];
   char wlanPASS[50];
@@ -58,6 +59,10 @@ public:
   bool taralistEnabled = true;
   long taralistTimeZone = -6;
   bool taralistDST = false;
+
+  char remoteHostURL[200];
+  IPAddress remoteHostIP;
+  int remoteHostPort;
 
 private:
   FileSystem fileSystem;

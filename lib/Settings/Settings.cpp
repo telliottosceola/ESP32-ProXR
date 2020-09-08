@@ -185,10 +185,10 @@ bool Settings::factoryReset(){
   #ifdef DEBUG
   Serial.println("factoryReset Settings");
   #endif
-  int defaultSettingsLength = fileSystem.getFileSize(SPIFFS, "/settings_D.txt");
+  int defaultSettingsLength = fileSystem.getFileSize(SPIFFS, "/settings_d.txt");
   if(defaultSettingsLength != 0){
     char defaultSettingsFileBuffer[defaultSettingsLength+1];
-    if(fileSystem.readFile(SPIFFS, "/settings_D.txt", defaultSettingsFileBuffer, defaultSettingsLength)){
+    if(fileSystem.readFile(SPIFFS, "/settings_d.txt", defaultSettingsFileBuffer, defaultSettingsLength)){
       DynamicJsonBuffer jsonBuffer;
       JsonObject& defaultSettingsJSON = jsonBuffer.parseObject(String(defaultSettingsFileBuffer));
       if(defaultSettingsJSON.success()){
@@ -254,6 +254,11 @@ void Settings::setPublicVariables(JsonObject& settingsJSON){
   taralistTimeZone = settingsJSON["taralist_utc_offset"].as<int>();
   taralistDST = settingsJSON["taralist_dst_enabled"].as<bool>();
 
+  memset(remoteHostURL, 0, sizeof(remoteHostURL));
+  strcpy(remoteHostURL, settingsJSON["remote_host_url"]);
+  remoteHostPort = settingsJSON["remote_host_port"].as<int>();
+  tcpClientEnabled = settingsJSON["remote_enabled"].as<bool>();
+
   JsonArray& staticIPArray = settingsJSON["static_ip"];
   for(int i = 0; i < 4; i++){
     staticIP[i] = staticIPArray[i].as<int>();
@@ -277,5 +282,10 @@ void Settings::setPublicVariables(JsonObject& settingsJSON){
   JsonArray& dnsSecondaryArray = settingsJSON["dns_secondary"];
   for(int i = 0; i < 4; i++){
     secondaryDNS[i] = dnsSecondaryArray[i].as<int>();
+  }
+
+  JsonArray& remoteHostArray = settingsJSON["remote_host_ip"];
+  for(int i = 0; i < 4; i++){
+    remoteHostIP[i] = remoteHostArray[i].as<int>();
   }
 }

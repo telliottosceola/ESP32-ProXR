@@ -17,6 +17,7 @@
 #include <HTML_Handler.h>
 #include <Taralist.h>
 #include <Time.h>
+#include <TCPClient.h>
 
 RGBLED rgbLED;
 Settings settings;
@@ -24,6 +25,7 @@ Device device;
 Broadcast broadcast;
 WiFiHandler wifiHandler;
 TCPServer tcpServer;
+TCPClient tcpClient;
 Bluetooth bluetooth;
 MQTT mqtt;
 GPIOHandler gpioHandler;
@@ -40,6 +42,7 @@ unsigned long requestTiemout = 1000;
 //Communication interfaces callbacks
 void deviceDataCallback(uint8_t* data, int dataLen);
 void tcpDataCallback(uint8_t* data, int dataLen);
+void tcpClientDataCallback(uint8_t* data, size_t dataLen);
 void bluetoothDataCallback(uint8_t* data, int dataLen);
 void httpDataCallback(uint8_t* data, int dataLen, AsyncWebServerRequest *request);
 void wsDataCallback(uint8_t* data, int dataLen);
@@ -50,3 +53,4 @@ void backgroundTasks(void* pvParameters);
 
 bool setupMode = false;
 bool taralistInitialized = false;
+bool previousSetupMode = false;
