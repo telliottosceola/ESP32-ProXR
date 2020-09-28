@@ -259,6 +259,12 @@ void Settings::setPublicVariables(JsonObject& settingsJSON){
   remoteHostPort = settingsJSON["remote_host_port"].as<int>();
   tcpClientEnabled = settingsJSON["remote_enabled"].as<bool>();
 
+  memset(wpaEnterpriseIdentity, 0, sizeof(wpaEnterpriseIdentity));
+  strcpy(wpaEnterpriseIdentity, settingsJSON["wifi_enterprise_identity"]);
+
+  memset(wpaEnterpriseUsername, 0, sizeof(wpaEnterpriseUsername));
+  strcpy(wpaEnterpriseUsername, settingsJSON["wifi_enterprise_username"]);
+
   JsonArray& staticIPArray = settingsJSON["static_ip"];
   for(int i = 0; i < 4; i++){
     staticIP[i] = staticIPArray[i].as<int>();

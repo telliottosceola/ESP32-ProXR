@@ -64,6 +64,9 @@ public:
   IPAddress remoteHostIP;
   int remoteHostPort;
 
+  char wpaEnterpriseUsername[50];
+  char wpaEnterpriseIdentity[50];
+
 private:
   FileSystem fileSystem;
   String discoveredNetworks;

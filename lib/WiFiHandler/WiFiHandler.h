@@ -4,6 +4,7 @@
 #include <Settings.h>
 #include <ArduinoJson.h>
 #include <RGBLED.h>
+#include "esp_wpa2.h"
 class WiFiHandler{
 public:
   void init(Settings &s, RGBLED &r);

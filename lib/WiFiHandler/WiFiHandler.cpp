@@ -27,7 +27,20 @@ bool WiFiHandler::checkWiFi(bool setupMode){
     if(strcmp(settings->wlanPASS, "blank") == 0 || strlen(settings->wlanPASS) == 0){
       WiFi.begin(settings->wlanSSID);
     }else{
-      WiFi.begin(settings->wlanSSID, settings->wlanPASS);
+      if(strcmp(settings->wpaEnterpriseUsername, "")!=0){
+        WiFi.disconnect(true);
+        esp_wifi_sta_wpa2_ent_set_username((uint8_t *)settings->wpaEnterpriseUsername, strlen(settings->wpaEnterpriseUsername));
+        esp_wifi_sta_wpa2_ent_set_password((uint8_t *)settings->wlanPASS, strlen(settings->wlanPASS));
+        if(strcmp(settings->wpaEnterpriseIdentity, "")!=0){
+          esp_wifi_sta_wpa2_ent_set_identity((uint8_t *)settings->wpaEnterpriseIdentity, strlen(settings->wpaEnterpriseIdentity));
+        }
+        esp_wpa2_config_t config = WPA2_CONFIG_INIT_DEFAULT();
+        esp_wifi_sta_wpa2_ent_enable(&config);
+        // esp_wifi_sta_wpa2_ent_enable();
+        WiFi.begin(settings->wlanSSID);
+      }else{
+        WiFi.begin(settings->wlanSSID, settings->wlanPASS);
+      }
     }
 
     while(WiFi.status() != WL_CONNECTED && millis() < startConnectTime+wifiConnectTimeout){
