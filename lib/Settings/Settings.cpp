@@ -28,9 +28,41 @@ bool Settings::storeSettings(String s){
             if(oldSettingsJSON.containsKey(kvp.key)){
               oldSettingsJSON[kvp.key] = kvp.value;
             }else{
-              #ifdef DEBUG
-              Serial.printf("invalid settings key: %s\n", kvp.key);
-              #endif
+              if(strcmp(kvp.key, "root_cert_file") == 0){
+                File rootCertFile = SPIFFS.open("/root_cert.pem.txt", FILE_WRITE);
+                if(rootCertFile){
+                  Serial.println("Storing root_cert_file:");
+                  Serial.printf("%s\n",kvp.value.as<char*>());
+                  memset(root_ca,0,sizeof(root_ca));
+                  strcpy(root_ca,kvp.value.as<char*>());
+                  rootCertFile.write((uint8_t*)root_ca, sizeof(root_ca));
+                  rootCertFile.close();
+                }
+              }else if(strcmp(kvp.key, "private_key_file") == 0){
+                File privateKeyFile = SPIFFS.open("/private_key.pem.key", FILE_WRITE);
+                if(privateKeyFile){
+                  Serial.println("Storing private_key_file:");
+                  Serial.printf("%s\n",kvp.value.as<char*>());
+                  memset(privateKey,0,sizeof(privateKey));
+                  strcpy(privateKey,kvp.value.as<char*>());
+                  privateKeyFile.write((uint8_t*)privateKey, sizeof(privateKey));
+                  privateKeyFile.close();
+                }
+              }else if(strcmp(kvp.key, "device_cert_file") == 0){
+                File deviceCertFile = SPIFFS.open("/certificate_pem.pem.crt", FILE_WRITE);
+                if(deviceCertFile){
+                  Serial.println("Storing device_cert_file:");
+                  Serial.printf("%s\n",kvp.value.as<char*>());
+                  memset(clientCert,0,sizeof(clientCert));
+                  strcpy(clientCert,kvp.value.as<char*>());
+                  deviceCertFile.write((uint8_t*)clientCert, sizeof(clientCert));
+                  deviceCertFile.close();
+                }
+              }else{
+                #ifdef DEBUG
+                Serial.printf("invalid settings key: %s\n", kvp.key);
+                #endif
+              }
             }
           }
           //set public variables based on new Settings
@@ -265,6 +297,58 @@ void Settings::setPublicVariables(JsonObject& settingsJSON){
   memset(wpaEnterpriseUsername, 0, sizeof(wpaEnterpriseUsername));
   strcpy(wpaEnterpriseUsername, settingsJSON["wifi_enterprise_username"]);
 
+  tls = settingsJSON["tls"].as<bool>();
+
+  if(SPIFFS.exists("/root_cert.pem.txt")){
+    int storedRootCertLength = fileSystem.getFileSize(SPIFFS, "/root_cert.pem.txt");
+    if(storedRootCertLength != 0){
+      char rootCertFileBuffer[storedRootCertLength+1];
+      if(fileSystem.readFile(SPIFFS, "/root_cert.pem.txt", rootCertFileBuffer, storedRootCertLength)){
+        memset(root_ca, 0, sizeof(root_ca));
+        strcpy(root_ca, rootCertFileBuffer);
+        // wClient.setCACert(rootCertFileBuffer);
+        #ifdef DEBUG
+        Serial.printf("CA Cert set to: \n%s\n",rootCertFileBuffer);
+        delay(50);
+        #endif
+        hasRootCert = true;
+      }
+    }
+  }
+  if(SPIFFS.exists("/certificate_pem.pem.crt")){
+    int certPemLength = fileSystem.getFileSize(SPIFFS, "/certificate_pem.pem.crt");
+    if(certPemLength != 0){
+      char certPemFileBuffer[certPemLength+1];
+      if(fileSystem.readFile(SPIFFS, "/certificate_pem.pem.crt", certPemFileBuffer, certPemLength)){
+        memset(clientCert, 0, sizeof(clientCert));
+        strcpy(clientCert, certPemFileBuffer);
+        hasClientCert = true;
+        // wClient.setCertificate(certPemFileBuffer);
+        #ifdef DEBUG
+        Serial.printf("Device Cert set to: \n%s\n",certPemFileBuffer);
+        delay(50);
+        #endif
+      }
+    }
+  }
+  if(SPIFFS.exists("/private_key.pem.key")){
+    int privateKeyLength = fileSystem.getFileSize(SPIFFS, "/private_key.pem.key");
+    if(privateKeyLength != 0){
+      char privateKeyFileBuffer[privateKeyLength+1];
+      memset(privateKeyFileBuffer, 0, sizeof(privateKeyFileBuffer));
+      if(fileSystem.readFile(SPIFFS, "/private_key.pem.key", privateKeyFileBuffer, privateKeyLength)){
+        memset(privateKey, 0, sizeof(privateKey));
+        strcpy(privateKey, privateKeyFileBuffer);
+        hasPrivateKey = true;
+        // wClient.setPrivateKey(privateKeyFileBuffer);
+        #ifdef DEBUG
+        Serial.printf("Private Key set to: \n%s\n",privateKeyFileBuffer);
+        delay(50);
+        #endif
+      }
+    }
+  }
+
   JsonArray& staticIPArray = settingsJSON["static_ip"];
   for(int i = 0; i < 4; i++){
     staticIP[i] = staticIPArray[i].as<int>();
@@ -294,4 +378,6 @@ void Settings::setPublicVariables(JsonObject& settingsJSON){
   for(int i = 0; i < 4; i++){
     remoteHostIP[i] = remoteHostArray[i].as<int>();
   }
+  JsonArray& hostIPArray = settingsJSON["mqtt_host_ip"].as<JsonArray&>();
+  hostIPArray.copyTo(mqttHostIP);
 }

@@ -2,8 +2,9 @@
 
 // #define DEBUG
 
-WiFiClient mqttWiFiClient;
-PubSubClient mqttClient(mqttWiFiClient);
+WiFiClientSecure wClient;
+WiFiClient wClientOpen;
+PubSubClient mqttClient(wClient);
 
 void MQTT::init(Settings &s){
   settings = &s;
@@ -71,62 +72,124 @@ void MQTT::mqttCallback(char* topic, byte* payload, unsigned int length) {
 }
 
 bool MQTT::checkMQTT(){
-  if(mqttClient.connected()){
-    connected = true;
-    return true;
-  }
-  mqttClient.setServer(settings->mqttHost, settings->mqttPort);
-
-  if((strcmp(settings->mqttClientID, "blank") != 0)){
-    char mqttID[strlen(settings->mqttClientID)+1];
-    memset(mqttID, 0, sizeof(mqttID));
-    memcpy(mqttID, settings->mqttClientID, strlen(settings->mqttClientID));
-    if(strcmp(settings->mqttUserName, "blank") == 0 && strcmp(settings->mqttPassword, "blank") == 0){
-      #ifdef DEBUG
-      Serial.println("Connecting MQTT with only mqtt client id");
-      #endif
-      mqttClient.connect(settings->mqttClientID);
-    }else if(strcmp(settings->mqttPassword, "blank") == 0){
-      #ifdef DEBUG
-      Serial.println("Connecting MQTT with only mqtt client id and username");
-      #endif
-      mqttClient.connect(settings->mqttClientID, settings->mqttUserName, "");
-    }else{
-      #ifdef DEBUG
-      Serial.println("Connecting MQTT with client id, username, and password");
-      #endif
-      mqttClient.connect(settings->mqttClientID, settings->mqttUserName, settings->mqttPassword);
+  if(settings->tls){
+    if(!settings->hasRootCert){
+      return false;
     }
-
-  }else{
-    #ifdef DEBUG
-    Serial.println("No MQTT Client set");
-    #endif
-    connected = false;
+  }
+  if(!WiFi.isConnected()){
     return false;
   }
+  if(mqttClientInitialized){
+    if(mqttClient.connected()){
+      connected = true;
+      return true;
+    }
+  }
 
-  if(mqttClient.connected()){
-    mqttClient.setCallback([this] (char* topic, byte* payload, unsigned int length) { this->mqttCallback(topic, payload, length); });
+  if(strcmp(settings->mqttHost,"blank")==0 && settings->mqttHostIP[0]==0 && settings->mqttHostIP[1]==0 && settings->mqttHostIP[2]==0 && settings->mqttHostIP[3]==0){
+    return false;
+  }
+  String macAddress = WiFi.macAddress();
+  memset(macAddressChar, 0, 18);
+  macAddress.toCharArray(macAddressChar, 18);
 
+  //Set Client accordingly
+  if(!mqttClientInitialized){
+    if(settings->tls){
+      // mqttClient.setClient(wClient);
+      if(!settings->hasRootCert){
+        return false;
+      }else{
+        wClient.setCACert(settings->root_ca);
+        if(settings->hasClientCert){
+          // Serial.printf("client cert set to:\n%s\n", clientCert);
+          wClient.setCertificate(settings->clientCert);
+        }
+        if(settings->hasPrivateKey){
+          // Serial.printf("private key set to:\n%s\n", privateKey);
+          wClient.setPrivateKey(settings->privateKey);
+        }
+      }
+    }else{
+      mqttClient.setClient(wClientOpen);
+    }
+    mqttClientInitialized = true;
+  }
+
+
+  //Set Host accordingly
+  if(strcmp(settings->mqttHost, "blank") != 0){
+    mqttClient.setServer(settings->mqttHost, settings->mqttPort);
     #ifdef DEBUG
-    Serial.println("MQTT connected.");
+    Serial.printf("MQTT Client host set to: %s, Port set to: %i\n",host,hostPort);
     #endif
-    //Subscribe to data in topic
-    if(mqttClient.subscribe(settings->mqttSubscribeTopic)){
+  }else{
+    mqttClient.setServer(settings->mqttHostIP, settings->mqttPort);
+  }
+
+  #ifdef TEST
+  Serial.println("Attempting WiFI Client Secure connection");
+  delay(50);
+  if(wClient.connect(settings->mqttHostIP, settings->mqttHostIP)){
+    Serial.println("WiFi Secure Client connected to IP");
+  }else{
+    Serial.println("WiFi Secure Client failed to connect to IP");
+  }
+  Serial.println("After Attempting WiFI Client Secure connection");
+  delay(50);
+  #endif
+
+  if(strcmp(settings->mqttUserName, "blank") == 0){
+    if(mqttClient.connect(settings->mqttClientID)){
       #ifdef DEBUG
-      Serial.printf("Subscribed to topic %s\n", settings->mqttSubscribeTopic);
+      Serial.println("MQTT Connected(No username/password)");
       #endif
+      mqttClient.setCallback([this] (char* topic, byte* payload, unsigned int length) { this->mqttCallback(topic, payload, length); });
+      mqttClient.subscribe(settings->mqttSubscribeTopic);
+      connected = true;
+      return true;
     }else{
       #ifdef DEBUG
-      Serial.printf("Subscription to topic %s failed\n", settings->mqttSubscribeTopic);
+      Serial.println("MQTT Connection Failed(No username/password)");
       #endif
+      connected = false;
+      return false;
     }
-    connected = true;
-    return true;
   }else{
-    connected = false;
-    return false;
+    #ifdef DEBUG
+    Serial.printf("Connecting to MQTT server with Username:%s Password:%s\n", mqttUser, mqttPassword);
+    delay(50);
+    #endif
+    if(strlen(settings->mqttPassword) == 0){
+      #ifdef DEBUG
+      Serial.println("No password");
+      #endif
+      if(mqttClient.connect(settings->mqttClientID, settings->mqttUserName, NULL)){
+        #ifdef DEBUG
+        Serial.println("MQTT Connected(using username/password)");
+        #endif
+        mqttClient.setCallback([this] (char* topic, byte* payload, unsigned int length) { this->mqttCallback(topic, payload, length); });
+        mqttClient.subscribe(settings->mqttSubscribeTopic);
+        connected = true;
+        return true;
+      }
+    }
+    if(mqttClient.connect(settings->mqttClientID, settings->mqttUserName, settings->mqttPassword)){
+      #ifdef DEBUG
+      Serial.println("MQTT Connected(using username/password)");
+      #endif
+      mqttClient.setCallback([this] (char* topic, byte* payload, unsigned int length) { this->mqttCallback(topic, payload, length); });
+      mqttClient.subscribe(settings->mqttSubscribeTopic);
+      connected = true;
+      return true;
+    }else{
+      #ifdef DEBUG
+      Serial.println("MQTT Connection Failed(using username/password)");
+      #endif
+      connected = false;
+      return false;
+    }
   }
 
 }

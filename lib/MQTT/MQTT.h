@@ -19,5 +19,7 @@ private:
   void mqttCallback(char* topic, byte* payload, unsigned int length);
   bool checkMQTT();
   void (*_MQTTDataCallback)(uint8_t*data, int dataLen);
+  bool mqttClientInitialized = false;
+  char macAddressChar[18];
 };
 #endif

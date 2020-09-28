@@ -277,6 +277,22 @@
 					<input type="text" name="mqtt_password" id="mqtt_password" />
 				</div>
 				<div class="form-item">
+					<label for="tls">TLS Enabled:</label>
+					<input type="checkbox" name="tls" onclick="tls_change_handler(this)" value="1"/>
+				</div>
+				<div class="form-item">
+					<label for="root_cert_file">Root Certificate:</label>
+					<input type="file" class="tls_files" name="root_cert_file" id="root_cert_file" />
+				</div>
+				<div class="form-item">
+					<label for="private_key_file">Private Key:</label>
+					<input type="file" class="tls_files" name="private_key_file" id="private_key_file" />
+				</div>
+				<div class="form-item">
+					<label for="device_cert_file">Device Cert:</label>
+					<input type="file" class="tls_files" name="device_cert_file" id="device_cert_file" />
+				</div>
+				<div class="form-item">
 					<label for="mqtt_subscribe_topic">Subscribe Topic:</label>
 					<input type="text" name="mqtt_subscribe_topic" id="mqtt_subscribe_topic" />
 				</div>
@@ -337,7 +353,44 @@ class miniQ{
 var $ = function(s, c){
 	return new miniQ(s,c);
 };
+
+function tls_change_handler(checkBox){
+	if(checkBox.checked){
+		var nodes = document.getElementsByClassName("tls_files");
+		for(var i = 0; i < nodes.length; i++){
+			nodes[i].disabled = false;
+			nodes[i].classList.remove('input-disabled');
+		}
+	}else{
+		var nodes = document.getElementsByClassName("tls_files");
+		for(var i = 0; i < nodes.length; i++){
+			nodes[i].disabled = true;
+			nodes[i].classList.add('input-disabled');
+		}
+	}
+}
+
+function attach_file_data(){
+	function attach_contents(e){
+		console.log('attaching file data');
+		this.file_data = [];
+		for(var i=0;i<this.files.length;i++){
+			var reader = new FileReader();
+			reader.readAsText(this.files[i], "UTF-8");
+			reader.onload = (evt) => {
+				if(this.multiple){
+					this.file_data[i] = evt.target.result;
+				}else{
+					this.file_data = evt.target.result;
+				}
+			};
+		}
+	}
+	$('input[type="file"]').on('change', attach_contents);
+}
+
 document.addEventListener("DOMContentLoaded", function() {
+	attach_file_data();
 	document.querySelectorAll('form[data-settings-path]').forEach(function(form){
 		disable(form);
 		getJson(form.getAttribute('data-settings-path'), function(err, data){
@@ -470,6 +523,27 @@ function postForm(form, cb){
 			break;
 			case 'password':
 			if(el.value == '' || el.value == "__SET__") break;
+
+			case'file':
+			console.log('element is a file');
+			if(typeof el.file_data != 'undefined'){
+				var splitText = el.name.split('.');
+				if(splitText.length == 1){
+					formData[el.name] = el.file_data;
+				}else{
+					// formData[splitText[0]] = {};
+					if(formData.hasOwnProperty(splitText[0])){
+						formData[splitText[0]][splitText[1]] = el.file_data;
+					}else{
+						formData[splitText[0]] = {};
+						formData[splitText[0]][splitText[1]] = el.file_data;
+					}
+					// formData[splitText[0]][splitText[1]] = el.file_data;
+					console.log(formData[splitText[0]]);
+				}
+			}
+			break;
+
 			default:
 			var splitText = el.name.split('.');
 			if(splitText.length == 1){

@@ -51,6 +51,7 @@ public:
   char mqttPassword[50];
   char mqttSubscribeTopic[50];
   char mqttPublishTopic[50];
+  uint8_t mqttHostIP[4];
 
   int relayCount;
 
@@ -66,6 +67,15 @@ public:
 
   char wpaEnterpriseUsername[50];
   char wpaEnterpriseIdentity[50];
+
+  //MQTT TLS
+  bool tls = false;
+  char clientCert[1500];
+  char privateKey[2000];
+  char root_ca[2000];
+  bool hasRootCert = false;
+  bool hasClientCert = false;
+  bool hasPrivateKey = false;
 
 private:
   FileSystem fileSystem;
