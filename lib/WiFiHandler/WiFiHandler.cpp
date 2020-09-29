@@ -8,7 +8,7 @@ void WiFiHandler::init(Settings &s, RGBLED &r){
 }
 
 bool WiFiHandler::checkWiFi(bool setupMode){
-  if(strcmp(settings->wlanSSID, "blank") == 0){
+  if(strcmp(settings->wlanSSID, "blank") == 0 || strlen(settings->wlanSSID) == 0){
     return false;
   }
   if(WiFi.isConnected()){

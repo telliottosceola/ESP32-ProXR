@@ -71,6 +71,10 @@
 					<select name="ssid" id="ssid"></select><br>
 				</div>
 				<div class="form-item">
+					<label for="hidden_network">Hidden Network:</label>
+					<input type="text" name="hidden_network" id="hidden_network" />
+				</div>
+				<div class="form-item">
 					<label for="password">Password:</label>
 					<input type="password" name="ssid_password" id="password" />
 				</div>
@@ -84,27 +88,27 @@
 				</div>
 				<div class="form-item">
 					<label for="dhcp_enabled">DHCP Enabled:</label>
-					<input type="checkbox" name="dhcp_enabled" value="1"/><br>
+					<input type="checkbox" name="dhcp_enabled" onclick="dhcp_change_handler(this);" value="1"/>
 				</div>
 				<div class="form-item">
 					<label for="default_gateway">Default Gateway:</label>
-					<input class="ip" type="text" name="default_gateway" id="default_gateway" />
+					<input class="ip static_ip_settings" type="text" name="default_gateway" id="default_gateway" />
 				</div>
 				<div class="form-item">
 					<label for="subnet_mask">Subnet Mask:</label>
-					<input class="ip" type="text" name="subnet_mask" id="subnet_mask" />
+					<input class="ip static_ip_settings" type="text" name="subnet_mask" id="subnet_mask" />
 				</div>
 				<div class="form-item">
 					<label for="dns_primary">DNS Primary:</label>
-					<input class="ip" type="text" name="dns_primary" id="dns_primary" />
+					<input class="ip static_ip_settings" type="text" name="dns_primary" id="dns_primary" />
 				</div>
 				<div class="form-item">
 					<label for="dns_secondary">DNS Secondary:</label>
-					<input class="ip" type="text" name="dns_secondary" id="dns_secondary" />
+					<input class="ip static_ip_settings" type="text" name="dns_secondary" id="dns_secondary" />
 				</div>
 				<div class="form-item">
 					<label for="static_ip">Static IP:</label>
-					<input class="ip" type="text" name="static_ip" id="static_ip" />
+					<input class="ip static_ip_settings" type="text" name="static_ip" id="static_ip" />
 				</div>
 			</div>
 		</div>
@@ -370,6 +374,22 @@ function tls_change_handler(checkBox){
 	}
 }
 
+function dhcp_change_handler(checkBox){
+	if(checkBox.checked){
+		var nodes = document.getElementsByClassName("static_ip_settings");
+		for(var i = 0; i < nodes.length; i++){
+			nodes[i].disabled = true;
+			nodes[i].classList.add('input-disabled');
+		}
+	}else{
+		var nodes = document.getElementsByClassName("static_ip_settings");
+		for(var i = 0; i < nodes.length; i++){
+			nodes[i].disabled = false;
+			nodes[i].classList.remove('input-disabled');
+		}
+	}
+}
+
 function attach_file_data(){
 	function attach_contents(e){
 		console.log('attaching file data');
@@ -443,6 +463,20 @@ document.addEventListener("DOMContentLoaded", function() {
 					}
 				}
 				enable(form);
+				if(data['dhcp_enabled']){
+					var nodes = document.getElementsByClassName("static_ip_settings");
+					for(var i = 0; i < nodes.length; i++){
+						nodes[i].disabled = true;
+						nodes[i].classList.add('input-disabled');
+					}
+				}
+				if(!data['cloud']['tls']){
+					var nodes = document.getElementsByClassName("tls_files");
+					for(var i = 0; i < nodes.length; i++){
+						nodes[i].disabled = true;
+						nodes[i].classList.add('input-disabled');
+					}
+				}
 			}
 		});
 		var form = document.querySelector('form');
@@ -551,6 +585,15 @@ function postForm(form, cb){
 			break;
 
 			default:
+
+			if(el.name == 'ssid'){
+				if((document.getElementById('hidden_network').value).length > 0){
+					console.log('setting ssid to hidden_network field value');
+					formData['ssid'] = document.getElementById('hidden_network').value;
+					break;
+				}
+			}
+
 			var splitText = el.name.split('.');
 			if(splitText.length == 1){
 				if(el.classList.contains('ip')){
