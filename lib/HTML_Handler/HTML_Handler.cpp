@@ -197,8 +197,8 @@ void HTMLHandler::onRequest(AsyncWebServerRequest *request){
       requestRoot["tls"] = requestRoot.containsKey("tls");
       String finalFinal;
       requestRoot.printTo(finalFinal);
-      Serial.print("Storing: ");
-      Serial.println(finalFinal);
+      // Serial.print("Storing: ");
+      // Serial.println(finalFinal);
       if(!settings->storeSettings(finalFinal)){
         #ifdef DEBUG
         Serial.println("Failed to store settings");

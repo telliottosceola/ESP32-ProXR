@@ -1,6 +1,6 @@
 #include <MQTT.h>
 
-#define DEBUG
+// #define DEBUG
 
 WiFiClientSecure wClient;
 WiFiClient wClientOpen;

@@ -31,7 +31,7 @@ void setup() {
   wifiHandler.init(settings, rgbLED);
   wifiHandler.scanNetworks();
 
-  if(gpioHandler.checkCFGButton() || strcmp("blank",settings.wlanSSID) == 0 || strcmp("",settings.wlanSSID) == 0){
+  if(gpioHandler.checkCFGButton()){
     gpioHandler.setupMode = true;
     #ifdef DEBUG
     Serial.println("Setup Mode");
