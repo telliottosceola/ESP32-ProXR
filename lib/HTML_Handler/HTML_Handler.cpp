@@ -194,6 +194,7 @@ void HTMLHandler::onRequest(AsyncWebServerRequest *request){
       requestRoot["taralist_enabled"] = requestRoot.containsKey("taralist_enabled");
       requestRoot["taralist_dst_enabled"] = requestRoot.containsKey("taralist_dst_enabled");
       requestRoot["remote_enabled"] = requestRoot.containsKey("remote_enabled");
+      requestRoot["tls"] = requestRoot.containsKey("tls");
       String finalFinal;
       requestRoot.printTo(finalFinal);
       Serial.print("Storing: ");

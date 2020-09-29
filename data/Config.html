@@ -522,7 +522,13 @@ function postForm(form, cb){
 
 			break;
 			case 'password':
-			if(el.value == '' || el.value == "__SET__") break;
+			console.log("this is a password element");
+			if(el.value == '' || el.value == "__SET__"){
+				break;
+			}else{
+				formData[el.name] = el.value;
+				console.log("Password name is: "+el.name+" value is: "+el.value);
+			}
 
 			case'file':
 			console.log('element is a file');

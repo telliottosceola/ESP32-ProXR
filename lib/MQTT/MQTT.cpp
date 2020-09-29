@@ -1,10 +1,10 @@
 #include <MQTT.h>
 
-// #define DEBUG
+#define DEBUG
 
 WiFiClientSecure wClient;
 WiFiClient wClientOpen;
-PubSubClient mqttClient(wClient);
+PubSubClient mqttClient(wClientOpen);
 
 void MQTT::init(Settings &s){
   settings = &s;
@@ -102,16 +102,22 @@ bool MQTT::checkMQTT(){
         return false;
       }else{
         wClient.setCACert(settings->root_ca);
+        Serial.println("Root CA set");
         if(settings->hasClientCert){
           // Serial.printf("client cert set to:\n%s\n", clientCert);
           wClient.setCertificate(settings->clientCert);
+          Serial.println("Client Cert Set");
         }
         if(settings->hasPrivateKey){
           // Serial.printf("private key set to:\n%s\n", privateKey);
           wClient.setPrivateKey(settings->privateKey);
+          Serial.println("Private Key Set");
         }
+        mqttClient.setClient(wClient);
+        Serial.println("MQTT client set to secure client");
       }
     }else{
+      Serial.println("Non Secure Client");
       mqttClient.setClient(wClientOpen);
     }
     mqttClientInitialized = true;
@@ -122,7 +128,7 @@ bool MQTT::checkMQTT(){
   if(strcmp(settings->mqttHost, "blank") != 0){
     mqttClient.setServer(settings->mqttHost, settings->mqttPort);
     #ifdef DEBUG
-    Serial.printf("MQTT Client host set to: %s, Port set to: %i\n",host,hostPort);
+    Serial.printf("MQTT Client host set to: %s, Port set to: %i\n",settings->mqttHost,settings->mqttPort);
     #endif
   }else{
     mqttClient.setServer(settings->mqttHostIP, settings->mqttPort);
@@ -140,7 +146,7 @@ bool MQTT::checkMQTT(){
   delay(50);
   #endif
 
-  if(strcmp(settings->mqttUserName, "blank") == 0){
+  if(strcmp(settings->mqttUserName, "blank") == 0 || strlen(settings->mqttUserName) == 0){
     if(mqttClient.connect(settings->mqttClientID)){
       #ifdef DEBUG
       Serial.println("MQTT Connected(No username/password)");
@@ -158,7 +164,7 @@ bool MQTT::checkMQTT(){
     }
   }else{
     #ifdef DEBUG
-    Serial.printf("Connecting to MQTT server with Username:%s Password:%s\n", mqttUser, mqttPassword);
+    Serial.printf("Connecting to MQTT server with Username:%s Password:%s\n", settings->mqttUserName, settings->mqttPassword);
     delay(50);
     #endif
     if(strlen(settings->mqttPassword) == 0){
