@@ -34,7 +34,11 @@ void TCPClient::loop(){
     }
   }
   if(client.connected()){
+    if(millis() > connectedTime+connectionTimeout){
+      client.stop();
+    }
     if(client.available()){
+      connectedTime = millis();
       delay(5);
       uint8_t buffer[client.available()];
       client.read(buffer, sizeof(buffer));

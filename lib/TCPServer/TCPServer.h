@@ -7,6 +7,8 @@ class TCPServer{
 public:
   bool ready = false;
   bool clientConnected = false;
+  unsigned long connectedTime;
+  unsigned long connectionTimeout = 5000;
   void init(Settings &s);
   void loop();
   void registerTCPDataCallback(void(*tcpDataCallback)(uint8_t*data, int dataLen));

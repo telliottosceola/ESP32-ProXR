@@ -32,14 +32,20 @@ void TCPServer::loop(){
     #ifdef DEBUG
     Serial.println("New Client Connection");
     #endif
+    connectedTime = millis();
   }
   if(client.connected() != previousClientStatus){
     #ifdef DEBUG
     Serial.printf("New Client Status: %i\n", client.connected());
     #endif
   }
+  if(previousClientStatus && millis() > connectedTime+connectionTimeout){
+    Serial.println("Client Timeout, disconnecting");
+    client.stop();
+  }
 
   if (client.available()) {
+    connectedTime = millis();
     uint8_t buffer[256];
     int index = 0;
     while(client.available()){
