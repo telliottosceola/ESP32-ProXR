@@ -11,7 +11,7 @@
 #include <Broadcast.h>
 #include <WiFiHandler.h>
 #include <TCPServer.h>
-#include <Bluetooth.h>
+// #include <Bluetooth.h>
 #include <MQTT.h>
 #include <GPIOHandler.h>
 #include <HTML_Handler.h>
@@ -22,7 +22,7 @@ Device device;
 Broadcast broadcast;
 WiFiHandler wifiHandler;
 TCPServer tcpServer;
-Bluetooth bluetooth;
+// Bluetooth bluetooth;
 MQTT mqtt;
 GPIOHandler gpioHandler;
 
@@ -36,7 +36,7 @@ unsigned long requestTiemout = 1000;
 //Communication interfaces callbacks
 void deviceDataCallback(uint8_t* data, int dataLen);
 void tcpDataCallback(uint8_t* data, int dataLen);
-void bluetoothDataCallback(uint8_t* data, int dataLen);
+// void bluetoothDataCallback(uint8_t* data, int dataLen);
 void httpDataCallback(uint8_t* data, int dataLen, AsyncWebServerRequest *request);
 void wsDataCallback(uint8_t* data, int dataLen);
 void mqttDataCallback(uint8_t* data, int dataLen);

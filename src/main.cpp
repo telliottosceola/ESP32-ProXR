@@ -41,10 +41,10 @@ void setup() {
     device.registerDeviceDataCallback(deviceDataCallback);
     device.init(settings.baudRate, 500);
     gpioHandler.setupMode = false;
-    if(settings.bluetoothEnabled){
-      bluetooth.registerBluetoothDataCallback(bluetoothDataCallback);
-      bluetooth.init(settings);
-    }
+    // if(settings.bluetoothEnabled){
+    //   bluetooth.registerBluetoothDataCallback(bluetoothDataCallback);
+    //   bluetooth.init(settings);
+    // }
     if(settings.wifiEnabled){
       if(wifiHandler.checkWiFi(setupMode)){
         if(settings.udpBroadcastEnabled){
@@ -90,9 +90,9 @@ void loop() {
     //Run MODE
     device.loop();
 
-    if(settings.bluetoothEnabled){
-      bluetooth.loop();
-    }
+    // if(settings.bluetoothEnabled){
+    //   bluetooth.loop();
+    // }
 
     if(settings.wifiEnabled){
       if(wifiHandler.checkWiFi(setupMode)){
@@ -118,7 +118,7 @@ void loop() {
           }
         }
 
-        if(tcpServer.clientConnected || bluetooth.deviceConnected){
+        if(tcpServer.clientConnected /*|| bluetooth.deviceConnected*/){
           rgbLED.setMode(rgbLED.MODE_CLIENT_CONNECTED);
         }else{
           rgbLED.setMode(rgbLED.MODE_ALL_CLEAR);
@@ -154,9 +154,9 @@ void deviceDataCallback(uint8_t* data, int dataLen){
   if(settings.wifiEnabled && settings.tcpListenerEnabled && tcpServer.ready && tcpServer.clientConnected){
     tcpServer.sendData(data, dataLen);
   }
-  if(settings.bluetoothEnabled && bluetooth.deviceConnected){
-    bluetooth.sendData(data, dataLen);
-  }
+  // if(settings.bluetoothEnabled && bluetooth.deviceConnected){
+  //   bluetooth.sendData(data, dataLen);
+  // }
   if(settings.httpControlEnabled && requestPending){
     char responseData[dataLen*4];
     memset(responseData, 0, sizeof(responseData));
