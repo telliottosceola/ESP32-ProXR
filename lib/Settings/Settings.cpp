@@ -1,6 +1,6 @@
 #include <Settings.h>
 
-// #define DEBUG
+#define DEBUG
 
 bool Settings::init(){
   if(!SPIFFS.begin(true)){

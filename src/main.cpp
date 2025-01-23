@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <main.h>
 
-// #define DEBUG
+#define DEBUG
 
 void setup() {
   if(!SPIFFS.begin(true)){
@@ -13,13 +13,13 @@ void setup() {
   Serial.begin(settings.usbBaudRate);
 
 
-  rgbLED.init(2,15,13,COMMON_ANODE, false);
-  rgbLED.setMode(rgbLED.MODE_BOOT);
-  rgbLED.loop();
+  // rgbLED.init(2,15,13,COMMON_ANODE, false);
+  // rgbLED.setMode(rgbLED.MODE_BOOT);
+  // rgbLED.loop();
   delay(1000);
   wifiHandler.init(settings, rgbLED);
   wifiHandler.scanNetworks();
-  gpioHandler.init(settings, rgbLED);
+  // gpioHandler.init(settings, rgbLED);
 
   httpHandler.registerHTTPDataCallback(httpDataCallback);
   httpHandler.registerWSDataCallback(wsDataCallback);
@@ -66,11 +66,12 @@ void setup() {
     pinMode(externalTTL, OUTPUT);
     digitalWrite(externalTTL, LOW);
   }
+  Serial.println("Setup Complete");
 }
 
 void loop() {
-  gpioHandler.loop();
-  rgbLED.loop();
+  // gpioHandler.loop();
+  // rgbLED.loop();
 
   if(externalTTLEnable && flash){
     if(millis() > flashStartTime + flashDuration){
@@ -194,6 +195,7 @@ void httpDataCallback(uint8_t* data, int dataLen, AsyncWebServerRequest *request
   device.write(data, dataLen);
   requestSendTime = millis();
 }
+
 void wsDataCallback(uint8_t* data, int dataLen){
   rgbLED.setMode(rgbLED.MODE_DATA_RECEIVED);
   device.write(data, dataLen);
