@@ -5,15 +5,15 @@
 #include <RGBLED.h>
 class GPIOHandler{
 public:
-  void init(Settings &s, RGBLED &rgb);
+  void init(Settings &s, FASTLEDHANDLER &rgb);
   void loop();
   bool checkCFGButton();
   bool setupMode;
 
 private:
   Settings* settings;
-  RGBLED* rgbLED;
-  uint8_t button = 32;
+  FASTLEDHANDLER* rgbLED;
+  uint8_t button = 6;
   unsigned long buttonPressTime;
   bool buttonPressed;
   bool setupButtonTimeout = 3000;

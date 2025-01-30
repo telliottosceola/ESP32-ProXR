@@ -6,7 +6,7 @@
 #include <RGBLED.h>
 class WiFiHandler{
 public:
-  void init(Settings &s, RGBLED &r);
+  void init(Settings &s, FASTLEDHANDLER &r);
   bool checkWiFi(bool setupMode);
   void scanNetworks();
 
@@ -16,7 +16,7 @@ public:
   IPAddress moduleIP;
 private:
   Settings *settings;
-  RGBLED *rgbLED;
+  FASTLEDHANDLER *rgbLED;
   void(*_onWiFiConnectionProgressCallback)();
   uint8_t button = 32;
   unsigned long buttonPressTime;

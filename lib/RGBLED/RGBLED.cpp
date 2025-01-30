@@ -1,145 +1,45 @@
 #include <Arduino.h>
 #include "RGBLED.h"
-#include <esp32-hal-ledc.h>
 
 // Constructor
-void RGBLED::init(int rPin, int gPin, int bPin, common_type type, bool buzzerEnabled) {
-	redPin = rPin;
-	greenPin = gPin;
-	bluePin = bPin;
-	commonType = type;
-	ledcAttachPin(redPin, 1); // assign RGB led pins to channels
-  ledcAttachPin(greenPin, 2);
-	ledcAttachPin(bluePin, 3);
-	ledcSetup(1, 12000, 8); // 12 kHz PWM, 8-bit resolution
-	ledcSetup(2, 12000, 8);
-	ledcSetup(3, 12000, 8);
-	turnOff();
-	// pinMode(buzzer, OUTPUT);
-	// digitalWrite(buzzer, HIGH);
-	_buzzerEnabled = buzzerEnabled;
+void FASTLEDHANDLER::init() {
+	FastLED.addLeds<NEOPIXEL, LED_PIN>(leds, NUM_LEDS);
+	FastLED.setBrightness(25);
 }
 
-void RGBLED::writeRGB(int red, int green, int blue) {
-  writeRed(red);
-  writeGreen(green);
-  writeBlue(blue);
-}
-
-void RGBLED::writeRed(int red) {
-	redValue = red;
-	redMappedValue = mapValue(redValue);
-	ledcWrite(1,redMappedValue);
-}
-
-void RGBLED::writeGreen(int green) {
-	greenValue = green;
-	greenMappedValue = mapValue(greenValue);
-	ledcWrite(2,greenMappedValue);
-}
-
-void RGBLED::writeBlue(int blue) {
-
-	blueValue = blue;
-	blueMappedValue = mapValue(blueValue);
-	ledcWrite(3,blueMappedValue);
-}
-
-void RGBLED::turnOff() {
-	writeRed(0);
-	writeGreen(0);
-	writeBlue(0);
-}
-
-void RGBLED::writeRandom() {
-	int r = random(0,255);
-	int g = random(0,255);
-	int b = random(0,255);
-
-	writeRGB(r,g,b);
-}
-
-int RGBLED::mapValue(int value) {
-	value = (value < 0) ? 0 : (value > 255) ? 255 : value;
-	value = (commonType == COMMON_ANODE) ? 255-value : value;
-	return value;
-}
-
-// Convert a given HSV (Hue Saturation Value) to RGB(Red Green Blue) and set the led to the color
-//   h is hue value, integer between 0 and 360
-//   s is saturation value, double between 0 and 1
-//   v is value, double between 0 and 1
-// Stolen from: http://eduardofv.com/read_post/179-Arduino-RGB-LED-HSV-Color-Wheel-
-// Based on: http://www.splinter.com.au/converting-hsv-to-rgb-colour-using-c/
-void RGBLED::writeHSV(int h, double s, double v) {
-  //this is the algorithm to convert from RGB to HSV
-  double r=0;
-  double g=0;
-  double b=0;
-
-  double hf=h/60.0;
-
-  int i=(int)floor(h/60.0);
-  double f = h/60.0 - i;
-  double pv = v * (1 - s);
-  double qv = v * (1 - s*f);
-  double tv = v * (1 - s * (1 - f));
-
-  switch (i)
-  {
-  case 0: //rojo dominante
-    r = v;
-    g = tv;
-    b = pv;
-    break;
-  case 1: //verde
-    r = qv;
-    g = v;
-    b = pv;
-    break;
-  case 2:
-    r = pv;
-    g = v;
-    b = tv;
-    break;
-  case 3: //azul
-    r = pv;
-    g = qv;
-    b = v;
-    break;
-  case 4:
-    r = tv;
-    g = pv;
-    b = v;
-    break;
-  case 5: //rojo
-    r = v;
-    g = pv;
-    b = qv;
-    break;
+void FASTLEDHANDLER::writeRGB(int red, int green, int blue) {
+  if(red == 255 && green == 255){
+	leds[0] = CRGB::Yellow;
+	FastLED.show();
+	return;
   }
-
-  //set each component to a integer value between 0 and 255
-  int red=constrain((int)255*r,0,255);
-  int green=constrain((int)255*g,0,255);
-  int blue=constrain((int)255*b,0,255);
-
-  writeRGB(red,green,blue);
-}
-
-
-// Cycle through the color wheel
-// Stolen from: http://eduardofv.com/read_post/179-Arduino-RGB-LED-HSV-Color-Wheel-
-void RGBLED::writeColorWheel(int dly) {
-  //The Hue value will vary from 0 to 360, which represents degrees in the color wheel
-  for(int hue=0;hue<360;hue++)
-  {
-    writeHSV(hue,1,1); //We are using Saturation and Value constant at 1
-    delay(dly); //each color will be shown for 10 milliseconds
+  if(red == 255){
+	leds[0] = CRGB::Red;
+	FastLED.show();
+	return;
+  }
+  if(green == 255){
+	leds[0] = CRGB::Green;
+	FastLED.show();
+	return;
+  }
+  if(blue == 255){
+	leds[0] = CRGB::Blue;
+	FastLED.show();
+	return;
   }
 }
 
-void RGBLED::setMode(uint8_t MODE){
+void FASTLEDHANDLER::turnOff() {
+	FastLED.clear(true);
+}
+
+void FASTLEDHANDLER::writeRandom() {
+	leds[0] = CHSV(random(),255,255);
+	FastLED.show();
+}
+
+void FASTLEDHANDLER::setMode(uint8_t MODE){
 	if(MODE == MODE_DATA_RECEIVED){
 		dataReceivedLED = true;
 		dataReceivedTime = millis();
@@ -155,14 +55,14 @@ void RGBLED::setMode(uint8_t MODE){
 	flashIndex = 0;
 }
 
-void RGBLED::setSignalStrength(uint8_t signalStrength){
+void FASTLEDHANDLER::setSignalStrength(uint8_t signalStrength){
 	if(_signalStrength/2 != signalStrength){
 		_signalStrength = signalStrength*2;
 	}
 
 }
 
-void RGBLED::loop(){
+void FASTLEDHANDLER::loop(){
 
 	if(dataReceivedLED && millis() < dataReceivedTime+minimumFlashTime){
 		return;
@@ -175,14 +75,8 @@ void RGBLED::loop(){
 			if(previousTime == 0){
 				if(MODE_ERROR_MQTT_INDEX_STATE[flashIndex] == 0){
 					turnOff();
-					if(_buzzerEnabled){
-						// digitalWrite(buzzer, HIGH);
-					}
 				}else{
 					writeRGB(MODE_ERROR_MQTT_COLOR[0], MODE_ERROR_MQTT_COLOR[1], MODE_ERROR_MQTT_COLOR[2]);
-					if(_buzzerEnabled){
-						// digitalWrite(buzzer, LOW);
-					}
 				}
 				previousTime = millis();
 
@@ -192,14 +86,8 @@ void RGBLED::loop(){
 					previousTime = millis();
 					if(MODE_ERROR_MQTT_INDEX_STATE[flashIndex] == 0){
 						turnOff();
-						if(_buzzerEnabled){
-							// digitalWrite(buzzer, HIGH);
-						}
 					}else{
 						writeRGB(MODE_ERROR_MQTT_COLOR[0], MODE_ERROR_MQTT_COLOR[1], MODE_ERROR_MQTT_COLOR[2]);
-						if(_buzzerEnabled){
-							// digitalWrite(buzzer, LOW);
-						}
 					}
 				}
 			}
@@ -209,14 +97,8 @@ void RGBLED::loop(){
 			if(previousTime == 0){
 				if(MODE_ERROR_I2C_INDEX_STATE[flashIndex] == 0){
 					turnOff();
-					if(_buzzerEnabled){
-						// digitalWrite(buzzer, HIGH);
-					}
 				}else{
 					writeRGB(MODE_ERROR_I2C_COLOR[0], MODE_ERROR_I2C_COLOR[1], MODE_ERROR_I2C_COLOR[2]);
-					if(_buzzerEnabled){
-						// digitalWrite(buzzer, LOW);
-					}
 				}
 				previousTime = millis();
 			}else{
@@ -225,14 +107,8 @@ void RGBLED::loop(){
 					previousTime = millis();
 					if(MODE_ERROR_I2C_INDEX_STATE[flashIndex] == 0){
 						turnOff();
-						if(_buzzerEnabled){
-							// digitalWrite(buzzer, HIGH);
-						}
 					}else{
 						writeRGB(MODE_ERROR_I2C_COLOR[0], MODE_ERROR_I2C_COLOR[1], MODE_ERROR_I2C_COLOR[2]);
-						if(_buzzerEnabled){
-							// digitalWrite(buzzer, LOW);
-						}
 					}
 				}
 			}
@@ -242,14 +118,8 @@ void RGBLED::loop(){
 			if(previousTime == 0){
 				if(MODE_ERROR_COMMS_INDEX_STATE[flashIndex] == 0){
 					turnOff();
-					if(_buzzerEnabled){
-						// digitalWrite(buzzer, HIGH);
-					}
 				}else{
 					writeRGB(MODE_ERROR_COMMS_COLOR[0], MODE_ERROR_COMMS_COLOR[1], MODE_ERROR_COMMS_COLOR[2]);
-					if(_buzzerEnabled){
-						// digitalWrite(buzzer, LOW);
-					}
 				}
 				previousTime = millis();
 			}else{
@@ -258,14 +128,8 @@ void RGBLED::loop(){
 					previousTime = millis();
 					if(MODE_ERROR_COMMS_INDEX_STATE[flashIndex] == 0){
 						turnOff();
-						if(_buzzerEnabled){
-							// digitalWrite(buzzer, HIGH);
-						}
 					}else{
 						writeRGB(MODE_ERROR_COMMS_COLOR[0], MODE_ERROR_COMMS_COLOR[1], MODE_ERROR_COMMS_COLOR[2]);
-						if(_buzzerEnabled){
-							// digitalWrite(buzzer, LOW);
-						}
 					}
 				}
 			}

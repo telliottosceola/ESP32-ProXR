@@ -2,7 +2,7 @@
 
 // #define DEBUG
 
-void WiFiHandler::init(Settings &s, RGBLED &r){
+void WiFiHandler::init(Settings &s, FASTLEDHANDLER &r){
   settings = &s;
   rgbLED = &r;
 }

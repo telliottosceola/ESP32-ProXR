@@ -1,6 +1,6 @@
 #include <GPIOHandler.h>
 
-void GPIOHandler::init(Settings &s, RGBLED &rgb){
+void GPIOHandler::init(Settings &s, FASTLEDHANDLER &rgb){
   settings = &s;
   rgbLED = &rgb;
   pinMode(button,INPUT_PULLUP);

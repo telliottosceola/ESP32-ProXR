@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <main.h>
 
-#define DEBUG
+// #define DEBUG
 
 void setup() {
   if(!SPIFFS.begin(true)){
@@ -13,13 +13,13 @@ void setup() {
   Serial.begin(settings.usbBaudRate);
 
 
-  // rgbLED.init(2,15,13,COMMON_ANODE, false);
-  // rgbLED.setMode(rgbLED.MODE_BOOT);
-  // rgbLED.loop();
+  rgbLED.init();
+  rgbLED.setMode(rgbLED.MODE_BOOT);
+  rgbLED.loop();
   delay(1000);
   wifiHandler.init(settings, rgbLED);
   wifiHandler.scanNetworks();
-  // gpioHandler.init(settings, rgbLED);
+  gpioHandler.init(settings, rgbLED);
 
   httpHandler.registerHTTPDataCallback(httpDataCallback);
   httpHandler.registerWSDataCallback(wsDataCallback);
@@ -41,10 +41,6 @@ void setup() {
     device.registerDeviceDataCallback(deviceDataCallback);
     device.init(settings.baudRate, 500);
     gpioHandler.setupMode = false;
-    // if(settings.bluetoothEnabled){
-    //   bluetooth.registerBluetoothDataCallback(bluetoothDataCallback);
-    //   bluetooth.init(settings);
-    // }
     if(settings.wifiEnabled){
       if(wifiHandler.checkWiFi(setupMode)){
         if(settings.udpBroadcastEnabled){
@@ -66,12 +62,11 @@ void setup() {
     pinMode(externalTTL, OUTPUT);
     digitalWrite(externalTTL, LOW);
   }
-  Serial.println("Setup Complete");
 }
 
 void loop() {
-  // gpioHandler.loop();
-  // rgbLED.loop();
+  gpioHandler.loop();
+  rgbLED.loop();
 
   if(externalTTLEnable && flash){
     if(millis() > flashStartTime + flashDuration){
@@ -90,10 +85,6 @@ void loop() {
   }else{
     //Run MODE
     device.loop();
-
-    // if(settings.bluetoothEnabled){
-    //   bluetooth.loop();
-    // }
 
     if(settings.wifiEnabled){
       if(wifiHandler.checkWiFi(setupMode)){
@@ -119,7 +110,7 @@ void loop() {
           }
         }
 
-        if(tcpServer.clientConnected /*|| bluetooth.deviceConnected*/){
+        if(tcpServer.clientConnected){
           rgbLED.setMode(rgbLED.MODE_CLIENT_CONNECTED);
         }else{
           rgbLED.setMode(rgbLED.MODE_ALL_CLEAR);
@@ -155,9 +146,6 @@ void deviceDataCallback(uint8_t* data, int dataLen){
   if(settings.wifiEnabled && settings.tcpListenerEnabled && tcpServer.ready && tcpServer.clientConnected){
     tcpServer.sendData(data, dataLen);
   }
-  // if(settings.bluetoothEnabled && bluetooth.deviceConnected){
-  //   bluetooth.sendData(data, dataLen);
-  // }
   if(settings.httpControlEnabled && requestPending){
     char responseData[dataLen*4];
     memset(responseData, 0, sizeof(responseData));
