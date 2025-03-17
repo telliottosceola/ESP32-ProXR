@@ -8,7 +8,7 @@ public:
   bool ready = false;
   bool connected = false;
   unsigned long connectedTime;
-  unsigned long connectionTimeout = 5000;
+  unsigned long connectionTimeout = 0;
   void init(Settings &s);
   void loop();
   void sendData(uint8_t* data, size_t dataLen);

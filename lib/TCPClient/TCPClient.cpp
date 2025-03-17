@@ -23,27 +23,39 @@ void TCPClient::init(Settings &s){
 
 void TCPClient::loop(){
   if(!client.connected()){
+    // Serial.println("Client not connected");
     if(strlen(settings->remoteHostURL) != 0){
+      // Serial.println("Using URL");
       if(client.connect(settings->remoteHostURL, settings->remoteHostPort)){
+        connectedTime = millis();
+        connected = true;
         ready = true;
       }
     }else{
+      // Serial.println("Using IP");
       if(client.connect(settings->remoteHostIP, settings->remoteHostPort)){
+        connectedTime = millis();
+        connected = true;
         ready = true;
       }
     }
   }
   if(client.connected()){
-    if(millis() > connectedTime+connectionTimeout){
+    if(millis() > connectedTime+connectionTimeout && connectionTimeout != 0){
       client.stop();
+      connected = false;
     }
     if(client.available()){
       connectedTime = millis();
       delay(5);
       uint8_t buffer[client.available()];
       client.read(buffer, sizeof(buffer));
-      sendData(buffer, sizeof(buffer));
+      _tcpClientDataCallback(buffer, sizeof(buffer));
     }
+    connected = true;
+  }else{
+    ready = false;
+    connected = false;
   }
 }
 

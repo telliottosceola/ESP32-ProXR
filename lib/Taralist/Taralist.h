@@ -1,7 +1,7 @@
 #ifndef TARALIST_H
 #define TARALIST_H
 
-#include <time.h>
+// #include <time.h>
 #include <Arduino.h>
 #include <WiFi.h>
 #include <Math.h>
@@ -30,6 +30,6 @@ private:
 
   unsigned long lastUpdate = 0;
   unsigned long _updateInterval;
-  const char* ntpServer = "time.google.com";
+  // const char* ntpServer = "time.google.com";
 };
 #endif

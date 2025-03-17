@@ -67,7 +67,7 @@ public:
 	int blueMappedValue;
 
 	//Constructor
-	void init(int redPin,int greenPin, int bluePin, common_type commonType, bool buzzerEnabled);
+	void init(int redPin,int greenPin, int bluePin, common_type commonType);
 
 	// Single method to set all pins
 	// red,green,blue values range from 0(off)-255(on)
@@ -104,8 +104,6 @@ public:
   void setMode(uint8_t mode);
   void setSignalStrength(uint8_t signalStrength);
 
-  void momentary(int red, int green, int blue, unsigned long duration);
-
   void loop();
 
   uint8_t MODE_ERROR_MQTT = 0;
@@ -120,7 +118,8 @@ public:
   uint8_t MODE_CLIENT_CONNECTED = 9;
   uint8_t MODE_DATA_RECEIVED = 10;
   uint8_t RANDOM = 11;
-  uint8_t MODE_NONE = 12;
+  uint8_t MODE_WORKING = 12;
+  uint8_t MODE_WIFI_CONNECTING = 13;
 
 private:
 
@@ -128,8 +127,6 @@ private:
   unsigned long dataReceivedTime;
   bool dataReceivedLED = false;
 
-  int buzzer = 33;
-  bool _buzzerEnabled = false;
   void writeRGB(int red, int green, int blue);
   unsigned long pulseDuration = 200;
   unsigned long offDuration = 200;
@@ -138,8 +135,6 @@ private:
   unsigned long previousTime;
   unsigned long flashIndex;
   uint8_t _signalStrength;
-  unsigned long momentaryStartTime;
-  unsigned long momentaryDuration;
 
   unsigned long MODE_ERROR_MQTT_SEQUENCE[2] = {cycleDelay, pulseDuration}; //One Flash
   int MODE_ERROR_MQTT_COLOR[3] = {255,0,0};
@@ -185,6 +180,16 @@ private:
   int MODE_ALL_CLEAR_COLOR[3] = {0,255,0};
   int MODE_ALL_CLEAR_INDEX_STATE[2] = {0, 1};
   int MODE_ALL_CLEAR_SIZE = 2;
+
+  unsigned long MODE_WORKING_SEQUENCE[2] = {200, 200}; //One Flash
+  int MODE_WORKING_COLOR[3] = {0,0,255};
+  int MODE_WORKING_INDEX_STATE[2] = {0, 1};
+  int MODE_WORKING_SIZE = 2;
+
+  unsigned long MODE_WIFI_CONNECTING_SEQUENCE[2] = {200, 200}; //One Flash
+  int MODE_WIFI_CONNECTING_COLOR[3] = {255,255,255};
+  int MODE_WIFI_CONNECTING_INDEX_STATE[2] = {0, 1};
+  int MODE_WIFI_CONNECTING_SIZE = 2;
 };
 
 #endif

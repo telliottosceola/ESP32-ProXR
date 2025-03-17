@@ -13,7 +13,7 @@ void setup() {
   }
   settings.loadSettings();
 
-  rgbLED.init(2,21,13,COMMON_ANODE, false);
+  rgbLED.init(2,21,13,COMMON_ANODE);
   rgbLED.setMode(rgbLED.MODE_BOOT);
   rgbLED.loop();
   // delay(1000);
@@ -24,7 +24,7 @@ void setup() {
   httpHandler.registerHTTPDataCallback(httpDataCallback);
   httpHandler.registerWSDataCallback(wsDataCallback);
 
-  taralist.registerTaralistCallback(taralistCallback);
+  // taralist.registerTaralistCallback(taralistCallback);
 
   xTaskCreatePinnedToCore(backgroundTasks, "BackGround Tasks", 20000, NULL, 1, &backgroundTask, 1);
 
@@ -135,20 +135,20 @@ void loop() {
           }
         }
 
-        if(tcpServer.clientConnected || bluetooth.deviceConnected){
+        if(tcpServer.clientConnected || bluetooth.deviceConnected || tcpClient.connected){
           if(!setupMode)rgbLED.setMode(rgbLED.MODE_CLIENT_CONNECTED);
         }else{
           if(!setupMode)rgbLED.setMode(rgbLED.MODE_ALL_CLEAR);
         }
 
-        if(settings.taralistEnabled){
-          if(!taralistInitialized){
-            taralist.init(10000, settings.taralistTimeZone, (settings.taralistDST)?3600:0);
-            taralistInitialized = true;
-          }else{
-            taralist.loop();
-          }
-        }
+        // if(settings.taralistEnabled){
+        //   if(!taralistInitialized){
+        //     taralist.init(10000, settings.taralistTimeZone, (settings.taralistDST)?3600:0);
+        //     taralistInitialized = true;
+        //   }else{
+        //     taralist.loop();
+        //   }
+        // }
 
       }else{
         if(!setupMode)rgbLED.setMode(rgbLED.MODE_WIFI_DISCONNECTED);
@@ -231,19 +231,19 @@ void mqttDataCallback(uint8_t* data, int dataLen){
   device.write(data, dataLen);
 }
 
-void taralistCallback(uint8_t*data, int dataLen){
-  // Serial.print("Taralist updating with command: ");
-  // for(int i = 0; i < dataLen; i++){
-  //   Serial.printf("%i ", data[i]);
-  // }
-  // Serial.println();
-  uint8_t returnBuffer[4];
-  if(device.write(taralist.enterConfigMode, sizeof(taralist.enterConfigMode), returnBuffer, sizeof(returnBuffer), 50)){
-    if(device.write(data, dataLen, returnBuffer, sizeof(returnBuffer), 50)){
-      device.write(taralist.exitConfigMode, sizeof(taralist.exitConfigMode), returnBuffer, sizeof(returnBuffer), 50);
-    }
-  }
-}
+// void taralistCallback(uint8_t*data, int dataLen){
+//   // Serial.print("Taralist updating with command: ");
+//   // for(int i = 0; i < dataLen; i++){
+//   //   Serial.printf("%i ", data[i]);
+//   // }
+//   // Serial.println();
+//   uint8_t returnBuffer[4];
+//   if(device.write(taralist.enterConfigMode, sizeof(taralist.enterConfigMode), returnBuffer, sizeof(returnBuffer), 50)){
+//     if(device.write(data, dataLen, returnBuffer, sizeof(returnBuffer), 50)){
+//       device.write(taralist.exitConfigMode, sizeof(taralist.exitConfigMode), returnBuffer, sizeof(returnBuffer), 50);
+//     }
+//   }
+// }
 
 void buttonPressCallback(unsigned long duration){
   if(duration > 50){

@@ -15,8 +15,8 @@
 #include <MQTT.h>
 #include <GPIOHandler.h>
 #include <HTML_Handler.h>
-#include <Taralist.h>
-#include <Time.h>
+// #include <Taralist.h>
+// #include <Time.h>
 #include <TCPClient.h>
 
 RGBLED rgbLED;
@@ -29,7 +29,7 @@ TCPClient tcpClient;
 Bluetooth bluetooth;
 MQTT mqtt;
 GPIOHandler gpioHandler;
-Taralist taralist;
+// Taralist taralist;
 TaskHandle_t backgroundTask;
 
 //Handling for http control interface
@@ -47,7 +47,7 @@ void bluetoothDataCallback(uint8_t* data, int dataLen);
 void httpDataCallback(uint8_t* data, int dataLen, AsyncWebServerRequest *request);
 void wsDataCallback(uint8_t* data, int dataLen);
 void mqttDataCallback(uint8_t* data, int dataLen);
-void taralistCallback(uint8_t*data, int dataLen);
+// void taralistCallback(uint8_t*data, int dataLen);
 void buttonPressCallback(unsigned long duration);
 void backgroundTasks(void* pvParameters);
 
