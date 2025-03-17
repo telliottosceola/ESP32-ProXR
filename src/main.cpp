@@ -124,6 +124,9 @@ void loop() {
         if(settings.mqttEnabled){
           mqtt.loop();
         }
+        if(settings.tcpClientEnabled){
+          tcpClient.loop();
+        }
 
         if(settings.httpControlEnabled && requestPending){
           if(millis() > requestSendTime+requestTiemout){
